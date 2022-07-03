@@ -86,7 +86,7 @@ int WriteDevice( FT_HANDLE Device, LPVOID Buffer, int Length )
 }
 
 
-void AT( char* Command )
+void Echo( char* Command )
 {
     char buffer[32];
     DWORD dwRxSize = 32;
@@ -96,14 +96,39 @@ void AT( char* Command )
     ReadDevice(AzoDevice, &buffer, &dwRxSize);
 
     start = strchr(&buffer, '\r');
-    start++;
 
-    end = strchr(start, '\r');
+    if (start)
+    {
+        start++;
+        end = strchr(start, '\r');
+    }
 
-    if (end)
-        *end = '\0';
+    // dirty check for echo off
+    if (end - start < 1)
+    {
+        start = &buffer;
+    }
+
+    buffer[dwRxSize] = '\0';
+
+    //replace line feeds at end with null terminator
+    for (int i = 1; i < 4; i++)
+    {
+        if (buffer[dwRxSize - i] == '\r')
+            buffer[dwRxSize - i] = '\0';
+    }
 
     printf("%s \n", start);
+}
+
+
+void Send( char* Command )
+{
+    char buffer[32];
+    DWORD dwRxSize = 32;
+
+    WriteDevice(AzoDevice, Command, strlen(Command));
+    ReadDevice(AzoDevice, &buffer, &dwRxSize);
 }
 
 
@@ -144,8 +169,21 @@ int main()
     FT_SetTimeouts(device, 2000, 1000);
     FT_SetLatencyTimer(device, 0x2);
 
-    AT("ATI\r");
-    AT("STI\r");
+    // Reboot device to flush any bad settings
+    //Send("ATWS\r");
+    FT_SetBaudRate(device, 115200);
+
+    Send("ATE0\r");//Echo off 
+    Echo("ATI\r"); //identify
+    Echo("STI\r"); //Print firmware ID string
+    Echo("STDI\r"); //Print device hardware ID string
+    Echo("ATDP\r"); //describe current protocol
+    Echo("ATRV\r"); //read voltage
+
+    /*Set current protocol preset to ISO 15765, 11-bit Tx, 125kbps, DLC=8 .
+    Medium Speed CAN (MS-CAN) is a dual-wire transceiver typically connected 
+    to pins 3 and 11 of the OBD port(Ford MSC network).*/
+    Send("STP53\r");
 
     return 0;
 }
