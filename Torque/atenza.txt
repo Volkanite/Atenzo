@@ -1,0 +1,9 @@
+﻿"Name", "ShortName", "ModeAndPID", "Equation", "Min Value", "Max Value", "Units", "Header", "startDiagnostic", "stopDiagnostic", "Scale"
+
+"Brake ON/OFF","BOO","0x221101","BIT(A:1)",0,1,"On / Off","7e0","null","null",1
+"Cooling Fan 1 Relay Control","FAN1_SW","0x221103","BIT(A:2)",0,1,"On / Off","7e0","null","null",1
+"Cooling Fan 2 Relay Control","FAN2_SW","0x221103","BIT(A:3)",0,1,"On / Off","7e0","null","null",1
+"Transmission Oil Pressure Switch B","OP_SW_B","0x221709","BIT(A:0)",0,1,"On / Off","7e0","null","null",1
+"Transmission Fluid Temperature","TFT","0x2217B31","(((((A*256)+B) * (7/100) – 400)/10) – 32) * (5/9) - 15",0,200,"°C","7e0","null","null",1
+"Line Pressure Solenoid","LPS","0x2217B8","INT16(A:B) * 0.000015",0,2,"A","7e0","null","null",1
+"Transmission Fluid Temp Voltage","TFTV","0x2217BD1","(1.8 * (A - 50)) + 32",0,200,"V","7e0","null","null",1
