@@ -185,5 +185,25 @@ int main()
     to pins 3 and 11 of the OBD port(Ford MSC network).*/
     Send("STP53\r");
 
+	Send("ATCFC1\r"); //can flow control on
+	Send("STCSEGR1\r"); //turn CAN Rx segmentation on
+	Send("STCSEGT1\r"); // turn CAN Tx segmentation on
+	Send("ATSH7E0\r"); // set the header of transmitted OBD messages
+	Send("ATCRA7E8\r"); // set CAN hardware filter
+	Send("ATCEAAE\r"); //use CAN extended address hh
+	Send("ATTAAE\r"); //set tester address to hh
+	Send("STCFCPC\r");     //# clear all flow control address pairs
+	Send("STCFCPA 7E0 AE, 7E8 AE\r");   //# add flow control address pair
+
+	//# message to check status of Brakes(last byte in response : 00 - brake is off, 01/02 - brake is on)
+	//BOO = Brake On/Off Switch
+	Echo("221101\r");
+
+	/*while (0)
+	{
+		Echo("221101\r");
+		Sleep(1000);
+	}*/
+
     return 0;
 }
