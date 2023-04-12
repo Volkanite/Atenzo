@@ -91,8 +91,8 @@ int main()
 
     
     // Reboot device to flush any bad settings
-    Send("ATWS\r");
-    //Send("ATZ\r");
+    Send("ATWS\r"); //soft reset
+    //Send("ATZ\r"); //hard reset
     sleep(1);
     
     Echo("ATL1\r"); // turn on line feed
@@ -105,20 +105,7 @@ int main()
     Echo("ATDP\r"); //describe current protocol
     Echo("ATRV\r"); //read voltage
     
-    /*Set current protocol preset to ISO 15765, 11-bit Tx, 125kbps, DLC=8 .
-    Medium Speed CAN (MS-CAN) is a dual-wire transceiver typically connected 
-    to pins 3 and 11 of the OBD port(Ford MSC network).*/
-    Send("STP53\r");
-
-    Send("ATCFC1\r"); //can flow control on
-    Send("STCSEGR1\r"); //turn CAN Rx segmentation on
-    Send("STCSEGT1\r"); // turn CAN Tx segmentation on
-    Send("ATSH7E0\r"); // set the header of transmitted OBD messages
-    Send("ATCRA7E8\r"); // set CAN hardware filter
-    Send("ATCEAAE\r"); //use CAN extended address hh
-    Send("ATTAAE\r"); //set tester address to hh
-    Send("STCFCPC\r");     //# clear all flow control address pairs
-    Send("STCFCPA 7E0 AE, 7E8 AE\r");   //# add flow control address pair
+    Echo("ATSH7E0\r"); // set the header of transmitted OBD messages
     
     //# message to check status of Brakes(last byte in response : 00 - brake is off, 01/02 - brake is on)
     //BOO = Brake On/Off Switch
