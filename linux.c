@@ -8,7 +8,7 @@
 
 
 int fd = 0;
-
+int GetKeyFromSeed(char* Seed);
 
 void Send( char* Command )
 {
@@ -16,7 +16,7 @@ void Send( char* Command )
 }
 
 
-void Echo( char* Command )
+void GetCo( char* Command, char* buff)
 {
     Send(Command);
     //read(fd, buffer, 100);
@@ -35,9 +35,38 @@ void Echo( char* Command )
         }
     } while ((n > 0) && (*(readpt-1)!='>') && (ntot<max_ntot) );
     
-    printf("%s\n", readpt);
+   // printf("%s\n", readpt);
+   if (buff)
+   {
+      strcpy(buff, str+12);
+   }
 }
 
+void Echo(char* Command)
+{
+	GetCo(Command, 0);
+}
+
+// Funtion removing spaces from string
+char * removeSpacesFromStr(char *string)
+{
+    // non_space_count to keep the frequency of non space characters
+    int non_space_count = 0;
+ 
+    //Traverse a string and if it is non space character then, place it at index non_space_count
+    for (int i = 0; string[i] != '\0'; i++)
+    {
+        if (string[i] != ' ')
+        {
+            string[non_space_count] = string[i];
+            non_space_count++;//non_space_count incremented
+        }    
+    }
+    
+    //Finally placing final character at the string end
+    string[non_space_count] = '\0';
+    return string;
+}
 
 int main()
 {
@@ -110,22 +139,28 @@ int main()
     //# message to check status of Brakes(last byte in response : 00 - brake is off, 01/02 - brake is on)
     //BOO = Brake On/Off Switch
     Echo("221101\r");
+    Echo("1087\r");
+    char smallbuff[100];
+    GetCo("2701\r", smallbuff);
+    removeSpacesFromStr(smallbuff);
+    printf("%s\n", smallbuff);
+    int key = GetKeyFromSeed(smallbuff);
+    
+    char newbuff[100];
+    snprintf(newbuff, 100, "2702%X\r", key);
+    printf("%s\n",newbuff);
+    Echo(newbuff);
+    
+    Echo("221103\r"); //fan pid
+    Echo("2F17C40701\r"); //set fan 1 ON
+    Echo("221103\r"); //second read actually turns on fan
 
-    /*while (0)
+	//Keep reading or else no food for you ;(
+    while (0)
     {
-        Echo("221101\r");
-        Sleep(1000);
-    }*/
-    
-    
-    /*Send("27011\r"); //SecurityAccess ;)
-    int seed = GetSeed();
-    
-    //Reply with key
-    int key = GetKeyFromSeed(seed);
-    //BuildKeyMessage(buffer, key);
-    //Echo(buffer); //send key*/
-    
+        Echo("221103\r");
+        sleep(1);
+    }    
     
     return 0;
 }
