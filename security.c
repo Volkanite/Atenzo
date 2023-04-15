@@ -1,3 +1,9 @@
+/*This code was adapted from EcomCat by Charlie Miller and Chris Valasek.
+It is based on the file /ecom/content/code/ecomcat_api/security.py
+which is written Python. This is a pure C implementation of that file.
+The only modification done was changing the 5-byte "shared secret" key
+to MazdA which works for 1st gen Mazda Atenzas.*/
+
 #include <stdlib.h>
 
 
