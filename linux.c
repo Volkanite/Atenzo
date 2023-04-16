@@ -156,7 +156,7 @@ int main()
     Echo("221103\r"); //second read actually turns on fan
 
 	//Keep reading or else no food for you ;(
-    while (0)
+    while (1)
     {
         Echo("221103\r");
         sleep(1);
