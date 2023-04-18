@@ -8,7 +8,10 @@
 
 
 int fd = 0;
+
 int GetKeyFromSeed(char* Seed);
+char * removeSpacesFromStr(char *string);
+
 
 void Send( char* Command )
 {
@@ -16,7 +19,7 @@ void Send( char* Command )
 }
 
 
-void GetCo( char* Command, char* buff)
+void GetCommandResponse( char* Command, char* buff )
 {
     Send(Command);
     //read(fd, buffer, 100);
@@ -39,13 +42,16 @@ void GetCo( char* Command, char* buff)
    if (buff)
    {
       strcpy(buff, str+12);
+      removeSpacesFromStr(buff);
    }
 }
 
+
 void Echo(char* Command)
 {
-	GetCo(Command, 0);
+	GetCommandResponse(Command, 0);
 }
+
 
 // Funtion removing spaces from string
 char * removeSpacesFromStr(char *string)
@@ -141,24 +147,32 @@ int main()
     Echo("221101\r");
     Echo("1087\r");
     char smallbuff[100];
-    GetCo("2701\r", smallbuff);
-    removeSpacesFromStr(smallbuff);
+    GetCommandResponse("2701\r", smallbuff);
+    //removeSpacesFromStr(smallbuff);
     printf("%s\n", smallbuff);
-    int key = GetKeyFromSeed(smallbuff);
     
+    int key = GetKeyFromSeed(smallbuff);
+    int temp;
     char newbuff[100];
+    
     snprintf(newbuff, 100, "2702%X\r", key);
     printf("%s\n",newbuff);
     Echo(newbuff);
     
     Echo("221103\r"); //fan pid
-    Echo("2F17C40701\r"); //set fan 1 ON
+	Echo("2F17C40701\r"); //set fan 1 ON
     Echo("221103\r"); //second read actually turns on fan
 
-	//Keep reading or else no food for you ;(
     while (1)
     {
-        Echo("221103\r");
+        Echo("221103\r"); //fan
+		GetCommandResponse("220005\r", smallbuff); //ECT
+		
+		temp = strtol(smallbuff, NULL, 16);
+		temp = (temp & 0x000000ff); //last byte
+		temp -= 40; //Celsius
+		
+		printf("\ntemp: %i\n", temp);
         sleep(1);
     }    
     
