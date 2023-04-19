@@ -49,7 +49,7 @@ void GetCommandResponse( char* Command, char* buff )
 
 void Echo(char* Command)
 {
-	GetCommandResponse(Command, 0);
+    GetCommandResponse(Command, 0);
 }
 
 
@@ -153,33 +153,33 @@ int main()
     while (1)
     {
         Echo("221103\r"); //fan
-		GetCommandResponse("220005\r", smallbuff); //ECT
-		
-		temp = strtol(smallbuff, NULL, 16);
-		temp = (temp & 0x000000ff); //last byte
-		temp -= 40; //Celsius
-		
-		if (temp > 90 && !fanOn)
-		{
-			fanOn = 1;
-			
-			Echo("1087\r");
-    		GetCommandResponse("2701\r", smallbuff);
-    		printf("%s\n", smallbuff);
+        GetCommandResponse("220005\r", smallbuff); //ECT
+        
+        temp = strtol(smallbuff, NULL, 16);
+        temp = (temp & 0x000000ff); //last byte
+        temp -= 40; //Celsius
+        
+        if (temp > 90 && !fanOn)
+        {
+            fanOn = 1;
+            
+            Echo("1087\r");
+            GetCommandResponse("2701\r", smallbuff);
+            printf("%s\n", smallbuff);
     
-    		int key = GetKeyFromSeed(smallbuff);
-    		
-    		char newbuff[100];
-    		snprintf(newbuff, 100, "2702%X\r", key);
-    		printf("%s\n",newbuff);
-    		Echo(newbuff);
+            int key = GetKeyFromSeed(smallbuff);
+            
+            char newbuff[100];
+            snprintf(newbuff, 100, "2702%X\r", key);
+            printf("%s\n",newbuff);
+            Echo(newbuff);
     
-    		//Echo("221103\r"); //fan pid
-			Echo("2F17C40701\r"); //set fan 1 ON
-    		Echo("221103\r"); //second read actually turns on fan
-		}
-		
-		printf("\ntemp: %i\n", temp);
+            //Echo("221103\r"); //fan pid
+            Echo("2F17C40701\r"); //set fan 1 ON
+            Echo("221103\r"); //second read actually turns on fan
+        }
+        
+        printf("\ntemp: %i\n", temp);
         sleep(1);
     }    
     
