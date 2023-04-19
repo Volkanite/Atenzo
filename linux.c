@@ -19,7 +19,7 @@ void Send( char* Command )
 }
 
 
-void GetCommandResponse( char* Command, char* buff )
+void GetCommandResponse( char* Command, char* buff, int Offset )
 {
     Send(Command);
     //read(fd, buffer, 100);
@@ -33,7 +33,7 @@ void GetCommandResponse( char* Command, char* buff )
         {
             ntot += n;
             readpt[n] = '\0';
-            printf("%s", readpt);
+           // printf("%s", readpt);
             readpt += n;
         }
     } while ((n > 0) && (*(readpt-1)!='>') && (ntot<max_ntot) );
@@ -41,7 +41,7 @@ void GetCommandResponse( char* Command, char* buff )
    // printf("%s\n", readpt);
    if (buff)
    {
-      strcpy(buff, str+12);
+      strcpy(buff, str+Offset);
       removeSpacesFromStr(buff);
    }
 }
@@ -49,7 +49,10 @@ void GetCommandResponse( char* Command, char* buff )
 
 void Echo(char* Command)
 {
-    GetCommandResponse(Command, 0);
+    char buffer[100];
+
+    GetCommandResponse(Command, buffer, 0);
+    printf("%s", buffer);
 }
 
 
@@ -152,8 +155,8 @@ int main()
     
     while (1)
     {
-        Echo("221103\r"); //fan
-        GetCommandResponse("220005\r", smallbuff); //ECT
+        GetCommandResponse("221103\r",0,0); //fan
+        GetCommandResponse("220005\r", smallbuff, 12); //ECT
         
         temp = strtol(smallbuff, NULL, 16);
         temp = (temp & 0x000000ff); //last byte
@@ -164,7 +167,7 @@ int main()
             fanOn = 1;
             
             Echo("1087\r");
-            GetCommandResponse("2701\r", smallbuff);
+            GetCommandResponse("2701\r", smallbuff, 12);
             printf("%s\n", smallbuff);
     
             int key = GetKeyFromSeed(smallbuff);
@@ -179,7 +182,8 @@ int main()
             Echo("221103\r"); //second read actually turns on fan
         }
         
-        printf("\nECT: %i °C\n", temp);
+        printf("\rECT: %i °C", temp);
+        fflush(stdout);
         sleep(1);
     }    
     
