@@ -42,8 +42,18 @@ void GetCommandResponse( char* Command, char* buff, int Offset )
    if (buff)
    {
       strcpy(buff, str+Offset);
-      removeSpacesFromStr(buff);
    }
+}
+
+
+long GetCommandResponseAsLong( char* Command )
+{
+    char buffer[100];
+    
+    GetCommandResponse(Command, buffer, 12);
+    removeSpacesFromStr(buffer);
+    
+    return strtol(buffer, NULL, 16);
 }
 
 
@@ -150,15 +160,16 @@ int main()
     //Echo("221101\r");
     
     int temp;
+    int fans = 0;
     int fanOn = 0;
     char buffer[100];
     
     while (1)
     {
-        GetCommandResponse("221103\r",0,0); //fan
-        GetCommandResponse("220005\r", buffer, 12); //ECT
+        fans = GetCommandResponseAsLong("221103\r"); //FANS
+        fanOn = (fans >> 2) & 1;
         
-        temp = strtol(buffer, NULL, 16);
+        temp = GetCommandResponseAsLong("220005\r"); //ECT
         temp = (temp & 0x000000ff); //last byte
         temp -= 40; //Celsius
         
@@ -168,6 +179,7 @@ int main()
             
             Echo("1087\r");
             GetCommandResponse("2701\r", buffer, 12);
+            removeSpacesFromStr(buffer);
             printf("%s\n", buffer);
     
             int key = GetKeyFromSeed(buffer);
@@ -182,7 +194,7 @@ int main()
             Echo("221103\r"); //second read actually turns on fan
         }
         
-        printf("\rECT: %i °C", temp);
+        printf("\rECT: %i °C    FAN: %i", temp, fanOn);
         fflush(stdout);
         sleep(1);
     }    
