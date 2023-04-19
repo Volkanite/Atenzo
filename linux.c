@@ -179,7 +179,7 @@ int main()
             Echo("221103\r"); //second read actually turns on fan
         }
         
-        printf("\ntemp: %i\n", temp);
+        printf("\nECT: %i °C\n", temp);
         sleep(1);
     }    
     
