@@ -151,14 +151,14 @@ int main()
     
     int temp;
     int fanOn = 0;
-    char smallbuff[100];
+    char buffer[100];
     
     while (1)
     {
         GetCommandResponse("221103\r",0,0); //fan
-        GetCommandResponse("220005\r", smallbuff, 12); //ECT
+        GetCommandResponse("220005\r", buffer, 12); //ECT
         
-        temp = strtol(smallbuff, NULL, 16);
+        temp = strtol(buffer, NULL, 16);
         temp = (temp & 0x000000ff); //last byte
         temp -= 40; //Celsius
         
@@ -167,10 +167,10 @@ int main()
             fanOn = 1;
             
             Echo("1087\r");
-            GetCommandResponse("2701\r", smallbuff, 12);
-            printf("%s\n", smallbuff);
+            GetCommandResponse("2701\r", buffer, 12);
+            printf("%s\n", buffer);
     
-            int key = GetKeyFromSeed(smallbuff);
+            int key = GetKeyFromSeed(buffer);
             
             char newbuff[100];
             snprintf(newbuff, 100, "2702%X\r", key);
