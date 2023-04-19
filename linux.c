@@ -144,25 +144,12 @@ int main()
     
     //# message to check status of Brakes(last byte in response : 00 - brake is off, 01/02 - brake is on)
     //BOO = Brake On/Off Switch
-    Echo("221101\r");
-    Echo("1087\r");
-    char smallbuff[100];
-    GetCommandResponse("2701\r", smallbuff);
-    //removeSpacesFromStr(smallbuff);
-    printf("%s\n", smallbuff);
+    //Echo("221101\r");
     
-    int key = GetKeyFromSeed(smallbuff);
     int temp;
-    char newbuff[100];
+    int fanOn = 0;
+    char smallbuff[100];
     
-    snprintf(newbuff, 100, "2702%X\r", key);
-    printf("%s\n",newbuff);
-    Echo(newbuff);
-    
-    Echo("221103\r"); //fan pid
-	Echo("2F17C40701\r"); //set fan 1 ON
-    Echo("221103\r"); //second read actually turns on fan
-
     while (1)
     {
         Echo("221103\r"); //fan
@@ -171,6 +158,26 @@ int main()
 		temp = strtol(smallbuff, NULL, 16);
 		temp = (temp & 0x000000ff); //last byte
 		temp -= 40; //Celsius
+		
+		if (temp > 90 && !fanOn)
+		{
+			fanOn = 1;
+			
+			Echo("1087\r");
+    		GetCommandResponse("2701\r", smallbuff);
+    		printf("%s\n", smallbuff);
+    
+    		int key = GetKeyFromSeed(smallbuff);
+    		
+    		char newbuff[100];
+    		snprintf(newbuff, 100, "2702%X\r", key);
+    		printf("%s\n",newbuff);
+    		Echo(newbuff);
+    
+    		//Echo("221103\r"); //fan pid
+			Echo("2F17C40701\r"); //set fan 1 ON
+    		Echo("221103\r"); //second read actually turns on fan
+		}
 		
 		printf("\ntemp: %i\n", temp);
         sleep(1);
