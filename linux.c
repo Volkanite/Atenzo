@@ -6,6 +6,8 @@
 #include <errno.h>
 #include <termios.h>
 
+#include "atenza.h"
+
 
 int fd = 0;
 
@@ -19,7 +21,7 @@ void Send( char* Command )
 }
 
 
-void GetCommandResponse( char* Command, char* buff, int Offset )
+void GetCommandResponse( char* Command, char* buff )
 {
     Send(Command);
     //read(fd, buffer, 100);
@@ -41,7 +43,7 @@ void GetCommandResponse( char* Command, char* buff, int Offset )
    // printf("%s\n", readpt);
    if (buff)
    {
-      strcpy(buff, str+Offset);
+      strcpy(buff, str);
    }
 }
 
@@ -50,8 +52,9 @@ long GetCommandResponseAsLong( char* Command )
 {
     char buffer[100];
     
-    GetCommandResponse(Command, buffer, 12);
+    GetCommandResponse(Command, buffer);
     removeSpacesFromStr(buffer);
+    //printf("%s\n", buffer);
     
     return strtol(buffer, NULL, 16);
 }
@@ -61,7 +64,7 @@ void Echo(char* Command)
 {
     char buffer[100];
 
-    GetCommandResponse(Command, buffer, 0);
+    GetCommandResponse(Command, buffer);
     printf("%s", buffer);
 }
 
@@ -144,7 +147,6 @@ int main()
     sleep(1);
     
     Echo("ATL1\r"); // turn on line feed
-    //Echo("ATE0\r");//Echo off
     Echo("ATE1\r");//Echo on
     
     Echo("ATI\r"); //identify
@@ -154,35 +156,29 @@ int main()
     Echo("ATRV\r"); //read voltage
     
     Echo("ATSH7E0\r"); // set the header of transmitted OBD messages
+    Echo("ATL0\r"); // turn off line feed
+    Echo("ATE0\r"); //Echo off
     
-    //# message to check status of Brakes(last byte in response : 00 - brake is off, 01/02 - brake is on)
-    //BOO = Brake On/Off Switch
-    //Echo("221101\r");
-    
+    int brake;
     int temp;
-    int fans = 0;
     int fanOn = 0;
     char buffer[100];
     
     while (1)
     {
-        fans = GetCommandResponseAsLong("221103\r"); //FANS
-        fanOn = (fans >> 2) & 1;
-        
-        temp = GetCommandResponseAsLong("220005\r"); //ECT
-        temp = (temp & 0x000000ff); //last byte
-        temp -= 40; //Celsius
+    	brake = GetBrakeSwitchState();
+        fanOn = GetFanState();    
+        temp = GetEngineCoolantTemperature();
         
         if (temp > 90 && !fanOn)
         {
-            fanOn = 1;
+            GetCommandResponse("1087\r", 0);
             
-            Echo("1087\r");
-            GetCommandResponse("2701\r", buffer, 12);
+            GetCommandResponse("2701\r", buffer);
             removeSpacesFromStr(buffer);
             printf("%s\n", buffer);
     
-            int key = GetKeyFromSeed(buffer);
+            int key = GetKeyFromSeed(buffer+4);
             
             char newbuff[100];
             snprintf(newbuff, 100, "2702%X\r", key);
@@ -194,7 +190,7 @@ int main()
             Echo("221103\r"); //second read actually turns on fan
         }
         
-        printf("\rECT: %i °C    FAN: %i", temp, fanOn);
+        printf("\rECT: %i °C    FAN: %i    BOO: %i", temp, fanOn, brake);
         fflush(stdout);
         sleep(1);
     }    

@@ -1,1 +1,1 @@
-gcc linux.c security.c -o atenzo
+gcc linux.c security.c atenza.c -o atenzo
