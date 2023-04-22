@@ -159,10 +159,7 @@ int main()
     Echo("ATL0\r"); // turn off line feed
     Echo("ATE0\r"); //Echo off
     
-    int brake;
-    int ect;
-    int tft;
-    int fanOn = 0;
+    int brake, ect, tft, fanOn, tops;
     char buffer[100];
     
     while (1)
@@ -171,6 +168,7 @@ int main()
         fanOn = GetFanState();    
         ect = GetEngineCoolantTemperature();
         tft = GetTransmissionFluidTemperature();
+        tops = GetTransmissionOilPressureSwitchState();
         
         if ((ect > 90 || tft > 90) && !fanOn)
         {
@@ -192,7 +190,10 @@ int main()
             Echo("221103\r"); //second read actually turns on fan
         }
         
-        printf("\rECT: %i °C    TFT: %i °C    FAN: %i    BOO: %i", ect, tft, fanOn, brake);
+        printf("\rECT: %i °C   TFT: %i °C   FAN: %i   BOO: %i   TOPS: %i", 
+            ect, tft, fanOn, brake, tops
+            );
+            
         fflush(stdout);
         sleep(1);
     }    

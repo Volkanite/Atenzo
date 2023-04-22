@@ -57,3 +57,14 @@ int GetTransmissionFluidTemperature()
     
     return temp2;
 }
+
+
+int GetTransmissionOilPressureSwitchState()
+{
+    int state;
+    
+    state = GetCommandResponseAsLong("221709\r");
+    state = (state & 0x000000ff);
+    
+    return state;
+}
