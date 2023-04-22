@@ -160,7 +160,8 @@ int main()
     Echo("ATE0\r"); //Echo off
     
     int brake;
-    int temp;
+    int ect;
+    int tft;
     int fanOn = 0;
     char buffer[100];
     
@@ -168,9 +169,10 @@ int main()
     {
     	brake = GetBrakeSwitchState();
         fanOn = GetFanState();    
-        temp = GetEngineCoolantTemperature();
+        ect = GetEngineCoolantTemperature();
+        tft = GetTransmissionFluidTemperature();
         
-        if (temp > 90 && !fanOn)
+        if (ect > 90 && !fanOn)
         {
             GetCommandResponse("1087\r", 0);
             
@@ -190,7 +192,7 @@ int main()
             Echo("221103\r"); //second read actually turns on fan
         }
         
-        printf("\rECT: %i °C    FAN: %i    BOO: %i", temp, fanOn, brake);
+        printf("\rECT: %i °C    TFT: %i °C    FAN: %i    BOO: %i", ect, tft, fanOn, brake);
         fflush(stdout);
         sleep(1);
     }    
