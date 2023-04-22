@@ -172,7 +172,7 @@ int main()
         ect = GetEngineCoolantTemperature();
         tft = GetTransmissionFluidTemperature();
         
-        if (ect > 90 && !fanOn)
+        if ((ect > 90 || tft > 90) && !fanOn)
         {
             GetCommandResponse("1087\r", 0);
             
