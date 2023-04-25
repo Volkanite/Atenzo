@@ -5,15 +5,34 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <termios.h>
+#include <curses.h>
 
 #include "atenza.h"
+
+
+typedef struct _PID
+{
+    char* Name;
+    char* Unit;
+    int Value;
+}PID;
+
+typedef enum _PID_INDEX
+{
+    ECT,
+    TFT,
+    FAN,
+    BOO,
+    OP_SW_B
+
+} PID_INDEX;
 
 
 int fd = 0;
 
 int GetKeyFromSeed(char* Seed);
+char * removeCharFromStr(char *string, char character);
 char * removeSpacesFromStr(char *string);
-
 
 void Send( char* Command )
 {
@@ -43,6 +62,9 @@ void GetCommandResponse( char* Command, char* buff )
    // printf("%s\n", readpt);
    if (buff)
    {
+      //ncurses doesn't like the CRs
+      removeCharFromStr(str, '\r');
+      
       strcpy(buff, str);
    }
 }
@@ -54,7 +76,6 @@ long GetCommandResponseAsLong( char* Command )
     
     GetCommandResponse(Command, buffer);
     removeSpacesFromStr(buffer);
-    //printf("%s\n", buffer);
     
     return strtol(buffer, NULL, 16);
 }
@@ -65,12 +86,13 @@ void Echo(char* Command)
     char buffer[100];
 
     GetCommandResponse(Command, buffer);
-    printf("%s", buffer);
+    printw("%s", buffer);
+    refresh();
 }
 
 
 // Funtion removing spaces from string
-char * removeSpacesFromStr(char *string)
+char * removeCharFromStr( char *string, char character )
 {
     // non_space_count to keep the frequency of non space characters
     int non_space_count = 0;
@@ -78,7 +100,7 @@ char * removeSpacesFromStr(char *string)
     //Traverse a string and if it is non space character then, place it at index non_space_count
     for (int i = 0; string[i] != '\0'; i++)
     {
-        if (string[i] != ' ')
+        if (string[i] != character)
         {
             string[non_space_count] = string[i];
             non_space_count++;//non_space_count incremented
@@ -89,6 +111,13 @@ char * removeSpacesFromStr(char *string)
     string[non_space_count] = '\0';
     return string;
 }
+
+
+char * removeSpacesFromStr( char *string )
+{
+	removeCharFromStr(string, ' ');
+}
+
 
 int main()
 {
@@ -140,6 +169,7 @@ int main()
         return 1;
     }
 
+    initscr();
     
     // Reboot device to flush any bad settings
     Send("ATWS\r"); //soft reset
@@ -156,45 +186,92 @@ int main()
     Echo("ATRV\r"); //read voltage
     
     Echo("ATSH7E0\r"); // set the header of transmitted OBD messages
-    Echo("ATL0\r"); // turn off line feed
-    Echo("ATE0\r"); //Echo off
     
-    int brake, ect, tft, fanOn, tops;
+    GetCommandResponse("ATL0\r", 0); // turn off line feed
+    GetCommandResponse("ATE0\r", 0); //Echo off
+    
+    //int brake, ect, tft, fanOn, tops;
+    int x, y;
+    int max_x, max_y;
+    int virtualColumns;
     char buffer[100];
+    
+    PID ParameterIds[] = {
+        {"ECT","°C",0},
+        {"TFT","°C",0},
+        {"FAN",0,0},
+        {"BOO",0,0},
+        {"TOPS",0,0}
+    };
+    
+    x = y = 0;
+    
+    initscr(); //init ncurses
+    getyx(stdscr, y, x); //backup cursor position
+    y += 2; //two lines from last echo
+    x = 0; //first column
+    
+    getmaxyx(stdscr, max_y, max_x); //get screen size;
+    virtualColumns = max_x / 10; //avg PID width is 10 chars
+    //printw("%i", virtualColumns);
     
     while (1)
     {
-    	brake = GetBrakeSwitchState();
-        fanOn = GetFanState();    
-        ect = GetEngineCoolantTemperature();
-        tft = GetTransmissionFluidTemperature();
-        tops = GetTransmissionOilPressureSwitchState();
+    	ParameterIds[BOO].Value = GetBrakeSwitchState();
+        ParameterIds[FAN].Value = GetFanState();    
+        ParameterIds[ECT].Value = GetEngineCoolantTemperature();
+        ParameterIds[TFT].Value = GetTransmissionFluidTemperature();
+        ParameterIds[OP_SW_B].Value = GetTransmissionOilPressureSwitchState();
         
-        if ((ect > 90 || tft > 90) && !fanOn)
+        if ((ParameterIds[ECT].Value > 90 || ParameterIds[TFT].Value > 90) && !ParameterIds[FAN].Value)
         {
-            GetCommandResponse("1087\r", 0);
+        	move(y-1, 0);
+        	printw("turning on FAN..");
+        	
+            GetCommandResponse("1087\r", 0); //tester present
             
+            //Authenticate
             GetCommandResponse("2701\r", buffer);
             removeSpacesFromStr(buffer);
-            printf("%s\n", buffer);
+            //printw("%s\n", buffer);
     
             int key = GetKeyFromSeed(buffer+4);
             
             char newbuff[100];
             snprintf(newbuff, 100, "2702%X\r", key);
-            printf("%s\n",newbuff);
-            Echo(newbuff);
+            //printw("%s\n",newbuff);
+            GetCommandResponse(newbuff, 0); //send key
     
-            //Echo("221103\r"); //fan pid
-            Echo("2F17C40701\r"); //set fan 1 ON
-            Echo("221103\r"); //second read actually turns on fan
+            GetCommandResponse("2F17C40701\r", 0); //set fan 1 ON
+            GetCommandResponse("221103\r", 0); //second read actually turns on fan
         }
         
-        printf("\rECT: %i °C   TFT: %i °C   FAN: %i   BOO: %i   TOPS: %i", 
-            ect, tft, fanOn, brake, tops
-            );
+        move(y, x); //restore cursor pos
+        clrtobot(); //clear line
+        refresh();
             
-        fflush(stdout);
+        int j = 1;
+        
+        for (int i = 0; i < sizeof(ParameterIds)/sizeof(ParameterIds[0]); i++)
+        {
+            printw("%s: %i", ParameterIds[i].Name, ParameterIds[i].Value);
+            
+            if (ParameterIds[i].Unit)
+                printw("%s", ParameterIds[i].Unit);
+            
+            if (j == virtualColumns)
+            {
+                printw("\n");
+                j = 1;
+            }
+            else
+            {
+                printw("  ");
+                j++;
+            }
+        }
+        
+        refresh();
         sleep(1);
     }    
     

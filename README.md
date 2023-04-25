@@ -1,2 +1,4 @@
 ## Compile
-gcc linux.c security.c -o atenzo
+sudo apt-get install libncurses5-dev
+
+./compile.sh
