@@ -29,6 +29,7 @@ typedef enum _PID_INDEX
 
 
 int fd = 0;
+int Debug = 0;
 
 int GetKeyFromSeed(char* Seed);
 char * removeCharFromStr(char *string, char character);
@@ -185,7 +186,12 @@ int main()
     Echo("ATDP\r"); //describe current protocol
     Echo("ATRV\r"); //read voltage
     
-    Echo("ATSH7E0\r"); // set the header of transmitted OBD messages
+    GetCommandResponse("ATSH7E0\r", 0); // set the header of transmitted OBD messages
+    
+    if (Debug)
+    {
+    	Echo("14FF00\r"); //Clear DTCs
+    }
     
     GetCommandResponse("ATL0\r", 0); // turn off line feed
     GetCommandResponse("ATE0\r", 0); //Echo off
