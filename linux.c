@@ -23,7 +23,8 @@ typedef enum _PID_INDEX
     TFT,
     FAN,
     BOO,
-    OP_SW_B
+    OP_SW_B,
+    RPM
 
 } PID_INDEX;
 
@@ -79,6 +80,17 @@ long GetCommandResponseAsLong( char* Command )
     removeSpacesFromStr(buffer);
     
     return strtol(buffer, NULL, 16);
+}
+
+
+long long GetCommandResponseAsLongLong( char* Command )
+{
+    char buffer[100];
+    
+    GetCommandResponse(Command, buffer);
+    removeSpacesFromStr(buffer);
+    
+    return strtoll(buffer, NULL, 16);
 }
 
 
@@ -190,7 +202,8 @@ int main()
     
     if (Debug)
     {
-    	Echo("14FF00\r"); //Clear DTCs
+    	GetCommandResponse("14FF00\r", 0); //Clear DTCs
+    	//Echo("22000C\r");
     }
     
     GetCommandResponse("ATL0\r", 0); // turn off line feed
@@ -207,7 +220,8 @@ int main()
         {"TFT","°C",0},
         {"FAN",0,0},
         {"BOO",0,0},
-        {"TOPS",0,0}
+        {"TOPS",0,0},
+        {"RPM",0,0}
     };
     
     x = y = 0;
@@ -228,6 +242,7 @@ int main()
         ParameterIds[ECT].Value = GetEngineCoolantTemperature();
         ParameterIds[TFT].Value = GetTransmissionFluidTemperature();
         ParameterIds[OP_SW_B].Value = GetTransmissionOilPressureSwitchState();
+        ParameterIds[RPM].Value = GetEngineRevolutionsPerMinute();
         
         if ((ParameterIds[ECT].Value > 90 || ParameterIds[TFT].Value > 90) && !ParameterIds[FAN].Value)
         {

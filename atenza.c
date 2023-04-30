@@ -1,4 +1,5 @@
 long GetCommandResponseAsLong(char* Command);
+long GetCommandResponseAsLongLong(char* Command);
 
 
 int GetBrakeSwitchState()
@@ -21,6 +22,22 @@ int GetEngineCoolantTemperature()
     temp -= 40; //Celsius
     
     return temp;
+}
+
+
+int GetEngineRevolutionsPerMinute()
+{
+    long long response;
+    short rpm;
+    
+    response = GetCommandResponseAsLongLong("22000C\r");
+    
+    if ((response & 0xff00000000) >> 32 != 0x62)
+        return 0;
+    
+    rpm = (response & 0xffff);
+    
+    return rpm * 0.25;
 }
 
 
