@@ -199,19 +199,13 @@ int main()
     Echo("ATRV\r"); //read voltage
     
     GetCommandResponse("ATSH7E0\r", 0); // set the header of transmitted OBD messages
-    
-    if (Debug)
-    {
-    	GetCommandResponse("14FF00\r", 0); //Clear DTCs
-    	//Echo("22000C\r");
-    }
-    
     GetCommandResponse("ATL0\r", 0); // turn off line feed
     GetCommandResponse("ATE0\r", 0); //Echo off
     
     //int brake, ect, tft, fanOn, tops;
     int x, y;
     int max_x, max_y;
+    int currentEngineState, previousEngineState;
     int virtualColumns;
     char buffer[100];
     
@@ -225,6 +219,7 @@ int main()
     };
     
     x = y = 0;
+    currentEngineState = previousEngineState = 0;
     
     initscr(); //init ncurses
     getyx(stdscr, y, x); //backup cursor position
@@ -243,6 +238,21 @@ int main()
         ParameterIds[TFT].Value = GetTransmissionFluidTemperature();
         ParameterIds[OP_SW_B].Value = GetTransmissionOilPressureSwitchState();
         ParameterIds[RPM].Value = GetEngineRevolutionsPerMinute();
+        
+        currentEngineState = (ParameterIds[RPM].Value > 0) ? 1 : 0;
+        
+        if (currentEngineState == 1 && previousEngineState == 0)
+        {
+        	//clear DTCs
+            if (Debug)
+            {
+                move(y-1, 0);
+        	    printw("Clearing DTCs..");
+    	        GetCommandResponse("14FF00\r", 0); //Clear DTCs
+            }
+        }
+        
+        previousEngineState = currentEngineState;
         
         if ((ParameterIds[ECT].Value > 90 || ParameterIds[TFT].Value > 90) && !ParameterIds[FAN].Value)
         {
