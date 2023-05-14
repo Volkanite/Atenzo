@@ -76,6 +76,25 @@ int GetTransmissionFluidTemperature()
 }
 
 
+float GetTransmissionLinePressureSolenoidAmperage()
+{
+    int response;
+    float amperage;
+    
+    response = GetCommandResponseAsLong("2217B8\r");
+    
+    if ((response & 0xff000000) >> 24 != 0x62)
+        return 0.0f;
+    
+    response = (response & 0xff); 
+           
+    amperage = (float) response;
+    amperage /= 256.0f;
+    
+    return amperage;
+}
+
+
 int GetTransmissionOilPressureSwitchState()
 {
     int state;

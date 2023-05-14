@@ -3,5 +3,6 @@ int GetEngineCoolantTemperature();
 int GetEngineRevolutionsPerMinute();
 int GetFanState();
 int GetTransmissionFluidTemperature();
+float GetTransmissionLinePressureSolenoidAmperage();
 int GetTransmissionOilPressureSwitchState();
 int GetTransmissionTurbineShaftSpeed();

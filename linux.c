@@ -14,7 +14,9 @@ typedef struct _PID
 {
     char* Name;
     char* Unit;
+    int Type;
     int Value;
+    float Value2;
 }PID;
 
 typedef enum _PID_INDEX
@@ -25,7 +27,8 @@ typedef enum _PID_INDEX
     BOO,
     OP_SW_B,
     RPM,
-    TSS
+    TSS,
+    LPS
 
 } PID_INDEX;
 
@@ -211,13 +214,14 @@ int main()
     char buffer[100];
     
     PID ParameterIds[] = {
-        {"ECT","°C",0},
-        {"TFT","°C",0},
-        {"FAN",0,0},
-        {"BOO",0,0},
-        {"TOPS",0,0},
-        {"RPM",0,0},
-        {"TSS",0,0}
+        {"ECT","°C",0,0},
+        {"TFT","°C",0,0},
+        {"FAN",0,0,0},
+        {"BOO",0,0,0},
+        {"TOPS",0,0,0},
+        {"RPM",0,0,0},
+        {"TSS",0,0,0},
+        {"LPS","A",1,0}
     };
     
     x = y = 0;
@@ -241,6 +245,7 @@ int main()
         ParameterIds[OP_SW_B].Value = GetTransmissionOilPressureSwitchState();
         ParameterIds[RPM].Value = GetEngineRevolutionsPerMinute();
         ParameterIds[TSS].Value = GetTransmissionTurbineShaftSpeed();
+        ParameterIds[LPS].Value2 = GetTransmissionLinePressureSolenoidAmperage();
         
         currentEngineState = (ParameterIds[RPM].Value > 0) ? 1 : 0;
         
@@ -288,10 +293,13 @@ int main()
         
         for (int i = 0; i < sizeof(ParameterIds)/sizeof(ParameterIds[0]); i++)
         {
-            printw("%s: %i", ParameterIds[i].Name, ParameterIds[i].Value);
+            if (ParameterIds[i].Type == 0) //int
+                printw("%s: %i", ParameterIds[i].Name, ParameterIds[i].Value);
+            else if (ParameterIds[i].Type == 1) //float
+                printw("%s: %.2f", ParameterIds[i].Name, ParameterIds[i].Value2);
             
             if (ParameterIds[i].Unit)
-                printw("%s", ParameterIds[i].Unit);
+                printw(" %s", ParameterIds[i].Unit);
             
             if (j == virtualColumns)
             {
