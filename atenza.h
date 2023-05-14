@@ -4,3 +4,4 @@ int GetEngineRevolutionsPerMinute();
 int GetFanState();
 int GetTransmissionFluidTemperature();
 int GetTransmissionOilPressureSwitchState();
+int GetTransmissionTurbineShaftSpeed();

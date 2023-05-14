@@ -24,7 +24,8 @@ typedef enum _PID_INDEX
     FAN,
     BOO,
     OP_SW_B,
-    RPM
+    RPM,
+    TSS
 
 } PID_INDEX;
 
@@ -215,7 +216,8 @@ int main()
         {"FAN",0,0},
         {"BOO",0,0},
         {"TOPS",0,0},
-        {"RPM",0,0}
+        {"RPM",0,0},
+        {"TSS",0,0}
     };
     
     x = y = 0;
@@ -238,6 +240,7 @@ int main()
         ParameterIds[TFT].Value = GetTransmissionFluidTemperature();
         ParameterIds[OP_SW_B].Value = GetTransmissionOilPressureSwitchState();
         ParameterIds[RPM].Value = GetEngineRevolutionsPerMinute();
+        ParameterIds[TSS].Value = GetTransmissionTurbineShaftSpeed();
         
         currentEngineState = (ParameterIds[RPM].Value > 0) ? 1 : 0;
         

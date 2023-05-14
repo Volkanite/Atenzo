@@ -85,3 +85,19 @@ int GetTransmissionOilPressureSwitchState()
     
     return state;
 }
+
+
+int GetTransmissionTurbineShaftSpeed()
+{
+	int speed;
+		
+	speed = GetCommandResponseAsLong("2217B0\r");
+	
+	if ((speed & 0xff000000) >> 24 != 0x62)
+        return 0;
+        
+	speed = (speed & 0x000000ff);
+	speed = (speed * 375) / 10;
+	
+	return speed;
+}
