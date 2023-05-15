@@ -281,8 +281,7 @@ int main()
             //printw("%s\n",newbuff);
             GetCommandResponse(newbuff, 0); //send key
     
-            GetCommandResponse("2F17C40701\r", 0); //set fan 1 ON
-            GetCommandResponse("221103\r", 0); //second read actually turns on fan
+            SetFanState(1);
         }
         
         move(y, x); //restore cursor pos

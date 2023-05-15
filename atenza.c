@@ -120,3 +120,20 @@ int GetTransmissionTurbineShaftSpeed()
 	
 	return speed;
 }
+
+
+int SetFanState( int State )
+{
+    long long response;
+    
+    //set fan 1 to ON
+    response = GetCommandResponseAsLongLong("2F17C40701\r"); 
+    
+    if ((response & 0xff00000000) >> 32 != 0x6F)
+        return 0;
+    
+    //fan read actually turns on fan [VERIFY]
+    GetCommandResponseAsLong("221103\r");
+    
+    return 1;
+}
