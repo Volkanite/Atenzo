@@ -1,5 +1,39 @@
 long GetCommandResponseAsLong(char* Command);
-long GetCommandResponseAsLongLong(char* Command);
+long long GetCommandResponseAsLongLong(char* Command);
+long long GetCommandResponse64(long long Command);
+int GetKeyFromSeed(int Seed);
+
+
+int AuthenticateSession()
+{
+    long long response, key;
+    int seed;
+    
+    //tester present
+    response = GetCommandResponseAsLong("1087\r");
+    
+    if ((response & 0xff00) >> 8 != 0x50)
+        return 0;
+            
+    //Authenticate
+    response = GetCommandResponseAsLongLong("2701\r");
+    
+    if ((response & 0xff00000000) >> 32 != 0x67)
+        return 0;
+    
+    seed = (response & 0x0000ffffff);
+    
+    key = GetKeyFromSeed(seed);
+    key += 0x2702000000;
+    
+    //send key
+    response = GetCommandResponse64(key); 
+    
+    if ((response & 0xff00) >> 8 != 0x67)
+        return 0;
+    
+    return 1;
+}
 
 
 int GetBrakeSwitchState()

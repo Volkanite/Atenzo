@@ -36,7 +36,6 @@ typedef enum _PID_INDEX
 int fd = 0;
 int Debug = 0;
 
-int GetKeyFromSeed(char* Seed);
 char * removeCharFromStr(char *string, char character);
 char * removeSpacesFromStr(char *string);
 
@@ -95,6 +94,15 @@ long long GetCommandResponseAsLongLong( char* Command )
     removeSpacesFromStr(buffer);
     
     return strtoll(buffer, NULL, 16);
+}
+
+
+long long GetCommandResponse64( long long Command )
+{
+    char buffer[50];
+    
+    snprintf(buffer, 50, "%llX\r", Command);
+    return GetCommandResponseAsLongLong(buffer);
 }
 
 
@@ -267,20 +275,7 @@ int main()
         	move(y-1, 0);
         	printw("turning on FAN..");
         	
-            GetCommandResponse("1087\r", 0); //tester present
-            
-            //Authenticate
-            GetCommandResponse("2701\r", buffer);
-            removeSpacesFromStr(buffer);
-            //printw("%s\n", buffer);
-    
-            int key = GetKeyFromSeed(buffer+4);
-            
-            char newbuff[100];
-            snprintf(newbuff, 100, "2702%X\r", key);
-            //printw("%s\n",newbuff);
-            GetCommandResponse(newbuff, 0); //send key
-    
+        	AuthenticateSession();    
             SetFanState(1);
         }
         

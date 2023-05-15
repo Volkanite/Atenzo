@@ -1,3 +1,7 @@
+/*ECU Operations*/
+int AuthenticateSession();
+
+/*Diagnostics*/
 int GetBrakeSwitchState();
 int GetEngineCoolantTemperature();
 int GetEngineRevolutionsPerMinute();

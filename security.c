@@ -6,10 +6,8 @@ The only modification done was changing the 5-byte "shared secret"
 to MazdA which works for 1st gen Mazda Atenzas.
 */
 
-#include <stdlib.h>
 
-
-int GetKeyFromSeed( char* Seed )
+int GetKeyFromSeed( int Seed )
 {
     int v8,v9,v10;
     int key;
@@ -23,7 +21,7 @@ int GetKeyFromSeed( char* Seed )
     s5 = 0x41;
     
     //convert seed to int
-    int seed_int = strtol(Seed, NULL, 16);
+    int seed_int = Seed;
     
     int or_ed_seed = ((seed_int & 0xFF0000) >> 16) | (seed_int & 0xFF00) | (s1 << 24) | (seed_int & 0xff) << 16;
     
