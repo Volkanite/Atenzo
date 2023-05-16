@@ -29,7 +29,8 @@ typedef enum _PID_INDEX
     RPM,
     TSS,
     LPS,
-    TR
+    TR,
+    THOP
 
 } PID_INDEX;
 
@@ -231,7 +232,8 @@ int main()
         {"RPM",0,0,0},
         {"TSS",0,0,0},
         {"LPS","A",1,0},
-        {"TR",0,2,0}
+        {"TR",0,2,0},
+        {"TP","%",1,0}
     };
     
     x = y = 0;
@@ -257,6 +259,7 @@ int main()
         ParameterIds[TSS].Value = GetTransmissionTurbineShaftSpeed();
         ParameterIds[LPS].Value2 = GetTransmissionLinePressureSolenoidAmperage();
         ParameterIds[TR].Value = GetTransmissionRangeSensorPosition();
+        ParameterIds[THOP].Value2 = GetThrottlePosition();
         
         currentEngineState = (ParameterIds[RPM].Value > 0) ? 1 : 0;
         

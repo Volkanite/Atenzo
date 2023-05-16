@@ -86,6 +86,23 @@ int GetFanState()
 }
 
 
+float GetThrottlePosition()
+{
+    int response;
+    float percentage;
+    
+    response = GetCommandResponseAsLong("2217B6\r");
+    
+    if ((response & 0xff000000) >> 24 != 0x62)
+        return 0.0f;
+        
+    percentage = (float)(response & 0x000000ff);
+    percentage = (percentage * 100.0f) / 256.0f;
+    
+    return percentage;
+}
+
+
 int GetTransmissionFluidTemperature()
 {
     int temp, temp2;
