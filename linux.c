@@ -28,7 +28,8 @@ typedef enum _PID_INDEX
     OP_SW_B,
     RPM,
     TSS,
-    LPS
+    LPS,
+    TR
 
 } PID_INDEX;
 
@@ -229,7 +230,8 @@ int main()
         {"TOPS",0,0,0},
         {"RPM",0,0,0},
         {"TSS",0,0,0},
-        {"LPS","A",1,0}
+        {"LPS","A",1,0},
+        {"TR",0,2,0}
     };
     
     x = y = 0;
@@ -254,6 +256,7 @@ int main()
         ParameterIds[RPM].Value = GetEngineRevolutionsPerMinute();
         ParameterIds[TSS].Value = GetTransmissionTurbineShaftSpeed();
         ParameterIds[LPS].Value2 = GetTransmissionLinePressureSolenoidAmperage();
+        ParameterIds[TR].Value = GetTransmissionRangeSensorPosition();
         
         currentEngineState = (ParameterIds[RPM].Value > 0) ? 1 : 0;
         
@@ -291,6 +294,8 @@ int main()
                 printw("%s: %i", ParameterIds[i].Name, ParameterIds[i].Value);
             else if (ParameterIds[i].Type == 1) //float
                 printw("%s: %.2f", ParameterIds[i].Name, ParameterIds[i].Value2);
+            else if (ParameterIds[i].Type == 2)
+                printw("%s: %c", ParameterIds[i].Name, ParameterIds[i].Value);
             
             if (ParameterIds[i].Unit)
                 printw(" %s", ParameterIds[i].Unit);

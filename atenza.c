@@ -140,6 +140,34 @@ int GetTransmissionOilPressureSwitchState()
 }
 
 
+char GetTransmissionRangeSensorPosition()
+{
+    int position;
+    
+    position = GetCommandResponseAsLong("2217B1\r");
+    
+    if ((position & 0xff000000) >> 24 != 0x62)
+        return 'E'; //error;
+        
+    position = (position & 0x000000ff);
+    
+    switch (position)
+    {
+        case 1: return 'R';
+        case 2: return 'N';
+        case 4: return 'L';
+        case 8: return 'S';
+        case 16: return 'D';
+        case 32: return 'P';
+        
+        //error
+        default: return 'E';
+    }
+    
+    return 'E';
+}
+
+
 int GetTransmissionTurbineShaftSpeed()
 {
 	int speed;

@@ -9,5 +9,6 @@ int GetFanState();
 int GetTransmissionFluidTemperature();
 float GetTransmissionLinePressureSolenoidAmperage();
 int GetTransmissionOilPressureSwitchState();
+char GetTransmissionRangeSensorPosition();
 int GetTransmissionTurbineShaftSpeed();
 int SetFanState(int State);
