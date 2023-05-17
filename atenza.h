@@ -1,5 +1,7 @@
 /* Diagnostic and Communications Management */
 int AuthenticateSession();
+int StartExtendedDiagnoticSession();
+int StopExtendedDiagnosticSession();
 
 /* Data Transmission */
 int GetBrakeSwitchState();
@@ -15,3 +17,4 @@ int GetTransmissionTurbineShaftSpeed();
 
 /* Input / Output Control */
 int SetFanState(int State);
+int SetTransmissionLinePressureSolenoidAmperage(float Amperage);

@@ -221,6 +221,9 @@ int main()
     int max_x, max_y;
     int currentEngineState, previousEngineState;
     int virtualColumns;
+    int fullPressure;
+    int releasePressure;
+    int awaitingFullPressure;
     char buffer[100];
     
     PID ParameterIds[] = {
@@ -238,6 +241,7 @@ int main()
     
     x = y = 0;
     currentEngineState = previousEngineState = 0;
+    fullPressure = releasePressure = awaitingFullPressure = 0;
     
     initscr(); //init ncurses
     getyx(stdscr, y, x); //backup cursor position
@@ -283,6 +287,52 @@ int main()
         	
         	AuthenticateSession();    
             SetFanState(1);
+        }
+        
+        if (Debug
+            && !fullPressure
+            && !awaitingFullPressure
+            && ParameterIds[TR].Value == 'N'
+            && ParameterIds[BOO].Value == 1 
+            && ParameterIds[THOP].Value2 > 1.0)
+        {
+            awaitingFullPressure = 1;
+            
+            move(y-1, 0);
+            printw("Release throttle to commit LPS..");
+        }
+        
+        if (awaitingFullPressure && ParameterIds[THOP].Value2 == 0.0)
+        {
+            move(y-1, 0);
+            clrtoeol();
+            printw("Setting LPS to full pressure..");
+            
+            fullPressure = 1;
+            awaitingFullPressure = 0;
+            
+            AuthenticateSession();
+            SetTransmissionLinePressureSolenoidAmperage(0.0);
+            
+            /*long long response = GetCommandResponseAsLongLong("2F17C20700\r");
+            char responseByte = (response & 0xff00000000) >> 32;
+            
+            move(y-1, 0);
+            clrtoeol();
+            printw("LPS: 0x%X", responseByte);*/
+        }
+        
+        if (fullPressure && ParameterIds[TR].Value == 'D')
+        {
+            releasePressure = 1;
+        }
+        
+        if (releasePressure && ParameterIds[TR].Value != 'D')
+        {
+            //Return LPS control to ECU
+            StopExtendedDiagnosticSession();
+            
+            releasePressure = fullPressure = 0;
         }
         
         move(y, x); //restore cursor pos

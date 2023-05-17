@@ -4,15 +4,38 @@ long long GetCommandResponse64(long long Command);
 int GetKeyFromSeed(int Seed);
 
 
+int StartExtendedDiagnoticSession()
+{
+    int response;
+    
+    response = GetCommandResponseAsLong("1087\r");
+    
+    if ((response & 0xff00) >> 8 != 0x50)
+        return 0;
+        
+    return 1;
+}
+
+
+int StopExtendedDiagnosticSession()
+{
+    int response;
+    
+    response = GetCommandResponseAsLong("1081\r");
+    
+    if ((response & 0xff00) >> 8 != 0x50)
+        return 0;
+        
+    return 1;
+}
+
+
 int AuthenticateSession()
 {
     long long response, key;
     int seed;
     
-    //tester present
-    response = GetCommandResponseAsLong("1087\r");
-    
-    if ((response & 0xff00) >> 8 != 0x50)
+    if (!StartExtendedDiagnoticSession())
         return 0;
             
     //Authenticate
@@ -214,5 +237,25 @@ int SetFanState( int State )
     //fan read actually turns on fan [VERIFY]
     GetCommandResponseAsLong("221103\r");
     
+    return 1;
+}
+
+
+/*
+Conditions: These conditions must be met in order to adjust this
+parameter else you'll get a negative response.
+TR = 'N' //Transmission Shift Lever in Neutral position
+THOP = 0.0 //Throttle fully closed
+*/
+
+int SetTransmissionLinePressureSolenoidAmperage( float Amperage )
+{
+    long long response;
+    
+    response = GetCommandResponseAsLongLong("2F17C20700\r");
+    
+    if ((response & 0xff00000000) >> 32 != 0x6F)
+        return 0;
+            
     return 1;
 }
