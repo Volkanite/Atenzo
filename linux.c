@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <termios.h>
 #include <curses.h>
+#include <sys/time.h>
 
 #include "atenza.h"
 
@@ -146,6 +147,18 @@ char * removeSpacesFromStr( char *string )
 }
 
 
+long long current_timestamp() 
+{
+    struct timeval te;
+    long long milliseconds;
+     
+    gettimeofday(&te, NULL);
+    milliseconds = te.tv_sec*1000LL + te.tv_usec/1000;
+    
+    return milliseconds;
+}
+
+
 int main()
 {
     fd = open("/dev/ttyUSB0", O_RDWR);
@@ -225,6 +238,8 @@ int main()
     int releasePressure;
     int awaitingFullPressure;
     char buffer[100];
+    long long start, delta;
+    int timeout;
     
     PID ParameterIds[] = {
         {"ECT","°C",0,0},
@@ -242,6 +257,7 @@ int main()
     x = y = 0;
     currentEngineState = previousEngineState = 0;
     fullPressure = releasePressure = awaitingFullPressure = 0;
+    start = delta = timeout = 0;
     
     initscr(); //init ncurses
     getyx(stdscr, y, x); //backup cursor position
@@ -294,7 +310,7 @@ int main()
             && !awaitingFullPressure
             && ParameterIds[TR].Value == 'N'
             && ParameterIds[BOO].Value == 1 
-            && ParameterIds[THOP].Value2 > 1.0)
+            && ParameterIds[THOP].Value2 > 0.5)
         {
             awaitingFullPressure = 1;
             
@@ -325,14 +341,29 @@ int main()
         if (fullPressure && ParameterIds[TR].Value == 'D')
         {
             releasePressure = 1;
+            
+            if (!start)
+                start = current_timestamp();
+                
+            delta = current_timestamp() - start;
+            
+            if (delta > 240000)
+            {
+                timeout = 1;
+            }
         }
         
-        if (releasePressure && ParameterIds[TR].Value != 'D')
+        if ((releasePressure && ParameterIds[TR].Value != 'D') || timeout)
         {
             //Return LPS control to ECU
             StopExtendedDiagnosticSession();
             
             releasePressure = fullPressure = 0;
+            start = delta = timeout = 0;
+            
+            move(y-1, 0);
+            clrtoeol();
+            printw("Returning LPS control to ECU..");
         }
         
         move(y, x); //restore cursor pos
@@ -366,7 +397,7 @@ int main()
         }
         
         refresh();
-        sleep(1);
+        usleep(500000);
     }    
     
     return 0;
