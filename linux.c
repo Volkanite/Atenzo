@@ -38,6 +38,8 @@ typedef enum _PID_INDEX
 
 int fd = 0;
 int Debug = 0;
+int ScreenX = 0;
+int ScreenY = 0;
 
 char * removeCharFromStr(char *string, char character);
 char * removeSpacesFromStr(char *string);
@@ -159,6 +161,14 @@ long long current_timestamp()
 }
 
 
+void StatusPrint( char* Message )
+{
+    move(ScreenY-1, 0);
+    clrtoeol();
+    printw("%s", Message);
+}
+
+
 int main()
 {
     fd = open("/dev/ttyUSB0", O_RDWR);
@@ -229,8 +239,6 @@ int main()
     GetCommandResponse("ATL0\r", 0); // turn off line feed
     GetCommandResponse("ATE0\r", 0); //Echo off
     
-    //int brake, ect, tft, fanOn, tops;
-    int x, y;
     int max_x, max_y;
     int currentEngineState, previousEngineState;
     int virtualColumns;
@@ -254,15 +262,15 @@ int main()
         {"TP","%",1,0}
     };
     
-    x = y = 0;
+    ScreenX = ScreenY = 0;
     currentEngineState = previousEngineState = 0;
     fullPressure = releasePressure = awaitingFullPressure = 0;
     start = delta = timeout = 0;
     
     initscr(); //init ncurses
-    getyx(stdscr, y, x); //backup cursor position
-    y += 2; //two lines from last echo
-    x = 0; //first column
+    getyx(stdscr, ScreenY, ScreenX); //backup cursor position
+    ScreenY += 2; //two lines from last echo
+    ScreenX = 0; //first column
     
     getmaxyx(stdscr, max_y, max_x); //get screen size;
     virtualColumns = max_x / 10; //avg PID width is 10 chars
@@ -288,8 +296,9 @@ int main()
         	//clear DTCs
             if (Debug)
             {
-                move(y-1, 0);
-        	    printw("Clearing DTCs..");
+                //move(y-1, 0);
+        	    //printw("Clearing DTCs..");
+        	    StatusPrint("Clearing DTCs..");
     	        GetCommandResponse("14FF00\r", 0); //Clear DTCs
             }
         }
@@ -298,8 +307,9 @@ int main()
         
         if ((ParameterIds[ECT].Value > 90 || ParameterIds[TFT].Value > 90) && !ParameterIds[FAN].Value)
         {
-        	move(y-1, 0);
-        	printw("turning on FAN..");
+        	//move(y-1, 0);
+        	//printw("turning on FAN..");
+        	StatusPrint("turning on FAN..");
         	
         	AuthenticateSession();    
             SetFanState(1);
@@ -314,15 +324,17 @@ int main()
         {
             awaitingFullPressure = 1;
             
-            move(y-1, 0);
-            printw("Release throttle to commit LPS..");
+            //move(y-1, 0);
+            //printw("Release throttle to commit LPS..");
+            StatusPrint("Release throttle to commit LPS..");
         }
         
         if (awaitingFullPressure && ParameterIds[THOP].Value2 == 0.0)
         {
-            move(y-1, 0);
-            clrtoeol();
-            printw("Setting LPS to full pressure..");
+            //move(y-1, 0);
+            //clrtoeol();
+            //printw("Setting LPS to full pressure..");
+            StatusPrint("Setting LPS to full pressure..");
             
             fullPressure = 1;
             awaitingFullPressure = 0;
@@ -361,12 +373,13 @@ int main()
             releasePressure = fullPressure = 0;
             start = delta = timeout = 0;
             
-            move(y-1, 0);
-            clrtoeol();
-            printw("Returning LPS control to ECU..");
+            //move(y-1, 0);
+            //clrtoeol();
+            //printw("Returning LPS control to ECU..");
+            StatusPrint("Returning LPS control to ECU..");
         }
         
-        move(y, x); //restore cursor pos
+        move(ScreenY, ScreenX); //restore cursor pos
         clrtobot(); //clear line
         refresh();
             
