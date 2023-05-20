@@ -31,7 +31,8 @@ typedef enum _PID_INDEX
     TSS,
     LPS,
     TR,
-    THOP
+    THOP,
+    DR
 
 } PID_INDEX;
 
@@ -259,7 +260,8 @@ int main()
         {"TSS",0,0,0},
         {"LPS","A",1,0},
         {"TR",0,2,0},
-        {"TP","%",1,0}
+        {"TP","%",1,0},
+        {"DR",0,1,0}
     };
     
     ScreenX = ScreenY = 0;
@@ -289,6 +291,12 @@ int main()
         ParameterIds[TR].Value = GetTransmissionRangeSensorPosition();
         ParameterIds[THOP].Value2 = GetThrottlePosition();
         
+        //Calculated values
+        if (ParameterIds[RPM].Value && ParameterIds[TSS].Value)
+            ParameterIds[DR].Value2 = (float) ParameterIds[TSS].Value / (float) ParameterIds[RPM].Value;
+        else
+            ParameterIds[DR].Value2 = 0.0;
+                   
         currentEngineState = (ParameterIds[RPM].Value > 0) ? 1 : 0;
         
         if (currentEngineState == 1 && previousEngineState == 0)
