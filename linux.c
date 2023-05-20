@@ -248,7 +248,7 @@ int main()
     int awaitingFullPressure;
     char buffer[100];
     long long start, delta;
-    int timeout;
+    int timeout, timeoutValue;
     
     PID ParameterIds[] = {
         {"ECT","°C",0,0},
@@ -267,7 +267,7 @@ int main()
     ScreenX = ScreenY = 0;
     currentEngineState = previousEngineState = 0;
     fullPressure = releasePressure = awaitingFullPressure = 0;
-    start = delta = timeout = 0;
+    start = delta = timeout = timeoutValue = 0;
     
     initscr(); //init ncurses
     getyx(stdscr, ScreenY, ScreenX); //backup cursor position
@@ -330,19 +330,31 @@ int main()
             && ParameterIds[BOO].Value == 1 
             && ParameterIds[THOP].Value2 > 0.5)
         {
-            awaitingFullPressure = 1;
+            int temp;
             
-            //move(y-1, 0);
-            //printw("Release throttle to commit LPS..");
             StatusPrint("Release throttle to commit LPS..");
+            
+            awaitingFullPressure = 1;
+            temp = ParameterIds[TFT].Value;
+            
+            //For every 10°C increase in temp subtract 1 minute
+            //Base: 240000 ms (4 minutes) at 30°C
+            timeoutValue = (temp * -6000) + 420000;
+            
+            //Handle < 1ms (possible if temp > 70°C); set to 1 minute minimum
+            if (timeoutValue < 60000)
+                timeoutValue = 60000;
         }
         
         if (awaitingFullPressure && ParameterIds[THOP].Value2 == 0.0)
         {
-            //move(y-1, 0);
-            //clrtoeol();
-            //printw("Setting LPS to full pressure..");
-            StatusPrint("Setting LPS to full pressure..");
+            char buffer[50];
+            float timeoutInMinutes;
+            
+            timeoutInMinutes = (float) timeoutValue / (float) 60000;
+            
+            snprintf(buffer, 50, "Setting LPS to full pressure for %.1f mins", timeoutInMinutes);
+            StatusPrint(buffer);
             
             fullPressure = 1;
             awaitingFullPressure = 0;
@@ -367,7 +379,7 @@ int main()
                 
             delta = current_timestamp() - start;
             
-            if (delta > 240000)
+            if (delta > timeoutValue)
             {
                 timeout = 1;
             }
