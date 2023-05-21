@@ -9,6 +9,7 @@ int GetEngineCoolantTemperature();
 int GetEngineRevolutionsPerMinute();
 int GetFanState();
 float GetLongTermFuelTrim();
+float GetShortTermFuelTrim();
 float GetThrottlePosition();
 int GetTransmissionFluidTemperature();
 float GetTransmissionLinePressureSolenoidAmperage();

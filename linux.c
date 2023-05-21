@@ -33,7 +33,8 @@ typedef enum _PID_INDEX
     TR,
     THOP,
     DR,
-    LONGFT1
+    LONGFT1,
+    SHRTFT1
 
 } PID_INDEX;
 
@@ -263,7 +264,8 @@ int main()
         {"TR",0,2,0},
         {"TP","%",1,0},
         {"DR",0,1,0},
-        {"LTFT",0,1,0}
+        {"LTFT",0,1,0},
+        {"STFT",0,1,0}
     };
     
     ScreenX = ScreenY = 0;
@@ -293,6 +295,7 @@ int main()
         ParameterIds[TR].Value = GetTransmissionRangeSensorPosition();
         ParameterIds[THOP].Value2 = GetThrottlePosition();
         ParameterIds[LONGFT1].Value2 = GetLongTermFuelTrim();
+        ParameterIds[SHRTFT1].Value2 = GetShortTermFuelTrim();
         
         //Calculated values
         if (ParameterIds[RPM].Value && ParameterIds[TSS].Value)
