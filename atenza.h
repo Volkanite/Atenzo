@@ -8,6 +8,7 @@ int GetBrakeSwitchState();
 int GetEngineCoolantTemperature();
 int GetEngineRevolutionsPerMinute();
 int GetFanState();
+float GetLongTermFuelTrim();
 float GetThrottlePosition();
 int GetTransmissionFluidTemperature();
 float GetTransmissionLinePressureSolenoidAmperage();

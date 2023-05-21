@@ -109,6 +109,23 @@ int GetFanState()
 }
 
 
+float GetLongTermFuelTrim()
+{
+    int response;
+    float percentage;
+    
+    response = GetCommandResponseAsLong("220007\r");
+    
+    if ((response & 0xff000000) >> 24 != 0x62)
+        return 0.0f;
+        
+    percentage = (float)(response & 0x000000ff);
+    percentage = (percentage - 128.0f) * 0.78125f;
+    
+    return percentage;
+}
+
+
 float GetThrottlePosition()
 {
     int response;

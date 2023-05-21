@@ -32,7 +32,8 @@ typedef enum _PID_INDEX
     LPS,
     TR,
     THOP,
-    DR
+    DR,
+    LONGFT1
 
 } PID_INDEX;
 
@@ -261,7 +262,8 @@ int main()
         {"LPS","A",1,0},
         {"TR",0,2,0},
         {"TP","%",1,0},
-        {"DR",0,1,0}
+        {"DR",0,1,0},
+        {"LTFT",0,1,0}
     };
     
     ScreenX = ScreenY = 0;
@@ -290,6 +292,7 @@ int main()
         ParameterIds[LPS].Value2 = GetTransmissionLinePressureSolenoidAmperage();
         ParameterIds[TR].Value = GetTransmissionRangeSensorPosition();
         ParameterIds[THOP].Value2 = GetThrottlePosition();
+        ParameterIds[LONGFT1].Value2 = GetLongTermFuelTrim();
         
         //Calculated values
         if (ParameterIds[RPM].Value && ParameterIds[TSS].Value)
