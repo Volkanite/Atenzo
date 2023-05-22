@@ -34,7 +34,8 @@ typedef enum _PID_INDEX
     THOP,
     DR,
     LONGFT1,
-    SHRTFT1
+    SHRTFT1,
+    MAF
 
 } PID_INDEX;
 
@@ -265,7 +266,8 @@ int main()
         {"TP","%",1,0},
         {"DR",0,1,0},
         {"LTFT",0,1,0},
-        {"STFT",0,1,0}
+        {"STFT",0,1,0},
+        {"MAF","g/s",1,0}
     };
     
     ScreenX = ScreenY = 0;
@@ -296,6 +298,7 @@ int main()
         ParameterIds[THOP].Value2 = GetThrottlePosition();
         ParameterIds[LONGFT1].Value2 = GetLongTermFuelTrim();
         ParameterIds[SHRTFT1].Value2 = GetShortTermFuelTrim();
+        ParameterIds[MAF].Value2 = GetIntakeAirMassFlowRate();
         
         //Calculated values
         if (ParameterIds[RPM].Value && ParameterIds[TSS].Value)

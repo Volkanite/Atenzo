@@ -109,6 +109,23 @@ int GetFanState()
 }
 
 
+float GetIntakeAirMassFlowRate()
+{
+    long long response;
+    float flowRate;
+    
+    response = GetCommandResponseAsLongLong("220010\r");
+    
+    if ((response & 0xff00000000) >> 32 != 0x62)
+        return 0.0f;
+        
+    flowRate = (float)(response & 0x000000ffff);
+    flowRate = (flowRate * 0.01f);
+    
+    return flowRate;
+}
+
+
 float GetLongTermFuelTrim()
 {
     int response;
