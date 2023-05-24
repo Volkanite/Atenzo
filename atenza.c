@@ -277,10 +277,15 @@ int GetTransmissionTurbineShaftSpeed()
 
 int SetFanState( int State )
 {
-    long long response;
+    long long response, command;
     
-    //set fan 1 to ON
-    response = GetCommandResponseAsLongLong("2F17C40701\r"); 
+    //response = GetCommandResponseAsLongLong("2F17C40701\r");
+    
+    if (State > 1)
+        return 0;
+    
+    command = 0x2F17C40700 + State;
+    response = GetCommandResponse64(command);
     
     if ((response & 0xff00000000) >> 32 != 0x6F)
         return 0;

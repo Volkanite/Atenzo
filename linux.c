@@ -252,6 +252,7 @@ int main()
     char buffer[100];
     long long start, delta;
     int timeout, timeoutValue;
+    int manualFanControl, tempHi, tempLo;
     
     PID ParameterIds[] = {
         {"ECT","°C",0,0},
@@ -274,6 +275,9 @@ int main()
     currentEngineState = previousEngineState = 0;
     fullPressure = releasePressure = awaitingFullPressure = 0;
     start = delta = timeout = timeoutValue = 0;
+    manualFanControl = 0;
+    tempHi = 95;
+    tempLo = 90;
     
     initscr(); //init ncurses
     getyx(stdscr, ScreenY, ScreenX); //backup cursor position
@@ -310,6 +314,8 @@ int main()
         
         if (currentEngineState == 1 && previousEngineState == 0)
         {
+            manualFanControl = 0;
+            
         	//clear DTCs
             if (Debug)
             {
@@ -322,14 +328,30 @@ int main()
         
         previousEngineState = currentEngineState;
         
-        if ((ParameterIds[ECT].Value > 90 || ParameterIds[TFT].Value > 90) && !ParameterIds[FAN].Value)
+        if ((ParameterIds[ECT].Value > tempHi || ParameterIds[TFT].Value > tempHi) && !ParameterIds[FAN].Value)
         {
-        	//move(y-1, 0);
-        	//printw("turning on FAN..");
+        	manualFanControl = 1;
+        	
         	StatusPrint("turning on FAN..");
         	
         	AuthenticateSession();    
             SetFanState(1);
+        }
+        else if (manualFanControl)
+        {   
+            if (ParameterIds[TR].Value == 'P')
+            {
+                tempHi = 90;
+                tempLo = 85;
+            }
+            else
+            {
+                tempHi = 95;
+                tempLo = 90;
+            }
+            
+            if (ParameterIds[ECT].Value < tempLo && ParameterIds[FAN].Value)
+                SetFanState(0);
         }
         
         if (Debug
