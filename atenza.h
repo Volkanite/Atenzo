@@ -6,7 +6,7 @@ int StopExtendedDiagnosticSession();
 /* Data Transmission */
 int GetBrakeSwitchState();
 int GetEngineCoolantTemperature();
-int GetEngineRevolutionsPerMinute();
+int GetEngineSpeed();
 int GetFanState();
 int GetFuelSystemStatus();
 float GetIntakeAirMassFlowRate();

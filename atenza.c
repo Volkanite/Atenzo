@@ -82,7 +82,7 @@ int GetEngineCoolantTemperature()
 }
 
 
-int GetEngineRevolutionsPerMinute()
+int GetEngineSpeed()
 {
     long long response;
     short rpm;

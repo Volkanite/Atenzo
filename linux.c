@@ -313,7 +313,7 @@ int main()
         ParameterIds[ECT].Value = GetEngineCoolantTemperature();
         ParameterIds[TFT].Value = GetTransmissionFluidTemperature();
         ParameterIds[OP_SW_B].Value = GetTransmissionOilPressureSwitchState();
-        ParameterIds[RPM].Value = GetEngineRevolutionsPerMinute();
+        ParameterIds[RPM].Value = GetEngineSpeed();
         ParameterIds[TSS].Value = GetTransmissionTurbineShaftSpeed();
         ParameterIds[LPS].Value2 = GetTransmissionLinePressureSolenoidAmperage();
         ParameterIds[TR].Value = GetTransmissionRangeSensorPosition();
