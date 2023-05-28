@@ -35,7 +35,8 @@ typedef enum _PID_INDEX
     DR,
     LONGFT1,
     SHRTFT1,
-    MAF
+    MAF,
+    FUELSYS1
 
 } PID_INDEX;
 
@@ -173,6 +174,22 @@ void StatusPrint( char* Message )
 }
 
 
+char* GetFuelSysStatus( int Status )
+{
+    switch (Status)
+    {
+        case 0: return "Off";
+        case 1: return "OL-T";
+        case 2: return "CL-1";
+        case 4: return "OL-D";
+        case 8: return "OL-F";
+        case 16: return "CL-F";
+        
+        default: return "Err";
+    }
+}
+
+
 int main()
 {
     fd = open("/dev/ttyUSB0", O_RDWR);
@@ -268,7 +285,8 @@ int main()
         {"DR",0,1,0},
         {"LTFT",0,1,0},
         {"STFT",0,1,0},
-        {"MAF","g/s",1,0}
+        {"MAF","g/s",1,0},
+        {"FSS", 0,3,0}
     };
     
     ScreenX = ScreenY = 0;
@@ -303,6 +321,7 @@ int main()
         ParameterIds[LONGFT1].Value2 = GetLongTermFuelTrim();
         ParameterIds[SHRTFT1].Value2 = GetShortTermFuelTrim();
         ParameterIds[MAF].Value2 = GetIntakeAirMassFlowRate();
+        ParameterIds[FUELSYS1].Value = GetFuelSystemStatus();
         
         //Calculated values
         if (ParameterIds[RPM].Value && ParameterIds[TSS].Value)
@@ -438,12 +457,16 @@ int main()
         
         for (int i = 0; i < sizeof(ParameterIds)/sizeof(ParameterIds[0]); i++)
         {
+            printw("%s: ", ParameterIds[i].Name);
+            
             if (ParameterIds[i].Type == 0) //int
-                printw("%s: %i", ParameterIds[i].Name, ParameterIds[i].Value);
+                printw("%i", ParameterIds[i].Value);
             else if (ParameterIds[i].Type == 1) //float
-                printw("%s: %.2f", ParameterIds[i].Name, ParameterIds[i].Value2);
-            else if (ParameterIds[i].Type == 2)
-                printw("%s: %c", ParameterIds[i].Name, ParameterIds[i].Value);
+                printw("%.2f", ParameterIds[i].Value2);
+            else if (ParameterIds[i].Type == 2) //char
+                printw("%c", ParameterIds[i].Value);
+            else if (ParameterIds[i].Type == 3) //string
+                printw("%s", GetFuelSysStatus(ParameterIds[FUELSYS1].Value)); //fuelsys1 is the only string for now
             
             if (ParameterIds[i].Unit)
                 printw(" %s", ParameterIds[i].Unit);

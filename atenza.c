@@ -109,6 +109,21 @@ int GetFanState()
 }
 
 
+int GetFuelSystemStatus()
+{
+    long long response;
+    
+    response = GetCommandResponseAsLongLong("220003\r");
+    
+    if ((response & 0xff00000000) >> 32 != 0x62)
+        return 0;
+        
+    response = (response & 0x000000ff00) >> 8;
+    
+    return response;
+}
+
+
 float GetIntakeAirMassFlowRate()
 {
     long long response;
