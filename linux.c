@@ -36,7 +36,8 @@ typedef enum _PID_INDEX
     LONGFT1,
     SHRTFT1,
     MAF,
-    FUELSYS1
+    FUELSYS1,
+    DTC_CNT
 
 } PID_INDEX;
 
@@ -286,7 +287,8 @@ int main()
         {"LTFT",0,1,0},
         {"STFT",0,1,0},
         {"MAF","g/s",1,0},
-        {"FSS", 0,3,0}
+        {"FSS", 0,3,0},
+        {"DTCs",0,0,0}
     };
     
     ScreenX = ScreenY = 0;
@@ -322,6 +324,7 @@ int main()
         ParameterIds[SHRTFT1].Value2 = GetShortTermFuelTrim();
         ParameterIds[MAF].Value2 = GetIntakeAirMassFlowRate();
         ParameterIds[FUELSYS1].Value = GetFuelSystemStatus();
+        ParameterIds[DTC_CNT].Value = GetDiagnosticTroubleCodeCount();
         
         //Calculated values
         if (ParameterIds[RPM].Value && ParameterIds[TSS].Value)

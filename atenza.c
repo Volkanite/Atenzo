@@ -70,6 +70,21 @@ int GetBrakeSwitchState()
 }
 
 
+int GetDiagnosticTroubleCodeCount()
+{
+    int response;
+    
+    response = GetCommandResponseAsLong("220200\r");
+    
+    if ((response & 0xff000000) >> 24 != 0x62)
+        return 0;
+        
+    response = (response & 0x000000ff);
+    
+    return response;
+}
+
+
 int GetEngineCoolantTemperature()
 {
     int temp;

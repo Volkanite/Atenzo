@@ -5,6 +5,7 @@ int StopExtendedDiagnosticSession();
 
 /* Data Transmission */
 int GetBrakeSwitchState();
+int GetDiagnosticTroubleCodeCount();
 int GetEngineCoolantTemperature();
 int GetEngineSpeed();
 int GetFanState();
