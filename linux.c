@@ -339,7 +339,7 @@ int main()
             manualFanControl = 0;
             
         	//clear DTCs
-            if (Debug)
+            if (Debug && ParameterIds[DTC_CNT].Value == 1)
             {
                 //move(y-1, 0);
         	    //printw("Clearing DTCs..");
