@@ -372,8 +372,11 @@ int main()
                 tempLo = 90;
             }
             
-            if (ParameterIds[ECT].Value < tempLo && ParameterIds[FAN].Value)
+            if (ParameterIds[ECT].Value < tempLo && ParameterIds[TFT].Value < tempLo && ParameterIds[FAN].Value)
+            {
+                StatusPrint("turning off FAN..");
                 SetFanState(0);
+            }
         }
         
         if (Debug
