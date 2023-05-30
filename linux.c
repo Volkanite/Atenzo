@@ -336,19 +336,19 @@ int main()
         
         if (currentEngineState == 1 && previousEngineState == 0)
         {
-            manualFanControl = 0;
+            //Code in this block runs once every engine restart
             
-        	//clear DTCs
-            if (Debug && ParameterIds[DTC_CNT].Value == 1)
-            {
-                //move(y-1, 0);
-        	    //printw("Clearing DTCs..");
-        	    StatusPrint("Clearing DTCs..");
-    	        GetCommandResponse("14FF00\r", 0); //Clear DTCs
-            }
+            manualFanControl = 0;
         }
         
         previousEngineState = currentEngineState;
+        
+        //clear DTCs
+        if (Debug && ParameterIds[DTC_CNT].Value == 1)
+        {
+            StatusPrint("Clearing DTCs..");
+    	    GetCommandResponse("14FF00\r", 0); //Clear DTCs
+        }
         
         if ((ParameterIds[ECT].Value > tempHi || ParameterIds[TFT].Value > tempHi) && !ParameterIds[FAN].Value)
         {
