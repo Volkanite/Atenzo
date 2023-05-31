@@ -387,19 +387,26 @@ int main()
             && ParameterIds[THOP].Value2 > 0.5)
         {
             int temp;
+            float slope, intercept;
+            float time;
             
             StatusPrint("Release throttle to commit LPS..");
             
             awaitingFullPressure = 1;
             temp = ParameterIds[TFT].Value;
             
-            //For every 10°C increase in temp subtract 1 minute
-            //Base: 240000 ms (4 minutes) at 30°C
-            timeoutValue = (temp * -6000) + 420000;
+            //For every 10°C increase in temp subtract 40000 ms
+            //Point1: 180000 ms (3.0 min) at 30°C
+            //Point2: 30000 ms (0.5 min) at 75°C
+            slope = -3333.33f;
+            intercept = 280000.0f;
             
-            //Handle < 1ms (possible if temp > 70°C); set to 1 minute minimum
-            if (timeoutValue < 60000)
-                timeoutValue = 60000;
+            time = ((float)temp * slope) + intercept;
+            timeoutValue = (int) time;
+            
+            //set to 30s minimum
+            if (timeoutValue < 30000)
+                timeoutValue = 30000;
         }
         
         if (awaitingFullPressure && ParameterIds[THOP].Value2 == 0.0)
