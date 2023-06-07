@@ -402,7 +402,9 @@ int main()
             intercept = 280000.0f;
             
             time = ((float)temp * slope) + intercept;
-            timeoutValue = (int) time;
+            
+            if (!timeoutValue)
+                timeoutValue = (int) time;
             
             //set to 30s minimum
             if (timeoutValue < 30000)
@@ -414,9 +416,21 @@ int main()
             char buffer[50];
             float timeoutInMinutes;
             
-            timeoutInMinutes = (float) timeoutValue / (float) 60000;
+            timeoutInMinutes = (float) timeoutValue / 60000.0f;
             
-            snprintf(buffer, 50, "Setting LPS to full pressure for %.1f mins", timeoutInMinutes);
+            //continue if previously started
+            if (start)
+            {   
+                delta = current_timestamp() - start;
+                timeoutInMinutes = (float)(timeoutValue - delta) / 60000.0f;
+                
+                snprintf(buffer, 50, "Resuming full pressure LPS for %.1f mins", timeoutInMinutes);
+            }
+            else
+            {
+                snprintf(buffer, 50, "Setting LPS to full pressure for %.1f mins", timeoutInMinutes);
+            }
+                
             StatusPrint(buffer);
             
             fullPressure = 1;
@@ -454,11 +468,10 @@ int main()
             StopExtendedDiagnosticSession();
             
             releasePressure = fullPressure = 0;
-            start = delta = timeout = 0;
             
-            //move(y-1, 0);
-            //clrtoeol();
-            //printw("Returning LPS control to ECU..");
+            if (timeout)
+                start = delta = timeout = timeoutValue = 0;
+            
             StatusPrint("Returning LPS control to ECU..");
         }
         
