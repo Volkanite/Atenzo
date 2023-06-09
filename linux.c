@@ -402,11 +402,10 @@ int main()
             awaitingFullPressure = 1;
             temp = ParameterIds[TFT].Value;
 
-            //For every 10°C increase in temp subtract 40000 ms
-            //Point1: 180000 ms (3.0 min) at 30°C
-            //Point2: 30000 ms (0.5 min) at 75°C
-            slope = -3333.33f;
-            intercept = 280000.0f;
+            //Point1: x=30°C, y=150000 ms (2.5 min)
+            //Point2: x=75°C, y=30000 ms (0.5 min)
+            slope = -2666.67f;
+            intercept = 230000.0f;
 
             time = ((float)temp * slope) + intercept;
 
