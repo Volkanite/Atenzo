@@ -260,6 +260,9 @@ int main()
     Echo("ATDP\r"); //describe current protocol
     Echo("ATRV\r"); //read voltage
 
+    //Set current protocol preset to ISO 15765, 11-bit Tx, 500kbps, DLC=8; High Speed CAN (HS-CAN)
+    GetCommandResponse("STP33\r", 0);
+
     GetCommandResponse("ATSH7E0\r", 0); // set the header of transmitted OBD messages
     GetCommandResponse("ATL0\r", 0); // turn off line feed
     GetCommandResponse("ATE0\r", 0); //Echo off
