@@ -108,6 +108,15 @@ long long GetCommandResponseAsLongLong( char* Command )
 }
 
 
+long GetCommandResponse32( unsigned int Command )
+{
+    char buffer[50];
+
+    snprintf(buffer, 50, "%X\r", Command);
+    return GetCommandResponseAsLong(buffer);
+}
+
+
 long long GetCommandResponse64( long long Command )
 {
     char buffer[50];
@@ -188,6 +197,18 @@ char* GetFuelSysStatus( int Status )
 
         default: return "Err";
     }
+}
+
+
+int UnlockActuation()
+{
+    if (!StartDiagnosticSession(SESSION_ADJUSTMENT))
+        return 0;
+
+    if (!AuthenticateSession())
+        return 0;
+
+    return 1;
 }
 
 
@@ -364,7 +385,7 @@ int main()
 
             StatusPrint("turning on FAN..");
 
-            AuthenticateSession();
+            UnlockActuation();
             SetFanState(1);
         }
         else if (manualFanControl)
@@ -445,7 +466,7 @@ int main()
             fullPressure = 1;
             awaitingFullPressure = 0;
 
-            AuthenticateSession();
+            UnlockActuation();
             SetTransmissionLinePressureSolenoidAmperage(0.0);
 
             /*long long response = GetCommandResponseAsLongLong("2F17C20700\r");
@@ -474,7 +495,7 @@ int main()
         if ((releasePressure && ParameterIds[TR].Value != 'D') || timeout)
         {
             //Return LPS control to ECU
-            StopExtendedDiagnosticSession();
+            StartDiagnosticSession(SESSION_DEFAULT);
 
             releasePressure = fullPressure = 0;
 
