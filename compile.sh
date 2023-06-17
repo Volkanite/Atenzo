@@ -1,1 +1,1 @@
-gcc linux.c security.c atenza.c -o atenzo -lncurses
+gcc linux.c security.c atenza.c kwp2k.c -o atenzo -lncurses

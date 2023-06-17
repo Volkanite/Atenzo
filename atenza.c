@@ -1,4 +1,6 @@
 #include "atenza.h"
+#include "kwp2k.h"
+
 
 long GetCommandResponseAsLong(char* Command);
 long GetCommandResponse32(long Command);
@@ -294,21 +296,11 @@ int GetTransmissionTurbineShaftSpeed()
 
 int SetFanState( int State )
 {
-    long long response, command;
-
-    //response = GetCommandResponseAsLongLong("2F17C40701\r");
-
-    if (State > 1)
-        return 0;
-
-    command = 0x2F17C40700 + State;
-    response = GetCommandResponse64(command);
-
-    if ((response & 0xff00000000) >> 32 != 0x6F)
+    if(!InputOutputControlByCommonIdentifier(0x17C4, ShortTermAdjustment, State))
         return 0;
 
     //fan read actually turns on fan [VERIFY]
-    GetCommandResponseAsLong("221103\r");
+    GetFanState();
 
     return 1;
 }
@@ -323,11 +315,7 @@ THOP = 0.0 //Throttle fully closed
 
 int SetTransmissionLinePressureSolenoidAmperage( float Amperage )
 {
-    long long response;
-
-    response = GetCommandResponseAsLongLong("2F17C20700\r");
-
-    if ((response & 0xff00000000) >> 32 != 0x6F)
+    if(!InputOutputControlByCommonIdentifier(0x17C2, ShortTermAdjustment, 0))
         return 0;
 
     return 1;
