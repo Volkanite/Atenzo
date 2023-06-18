@@ -50,27 +50,19 @@ int AuthenticateSession()
 
 int GetBrakeSwitchState()
 {
-	int state;
+    int state;
 
-	state = GetCommandResponseAsLong("221101\r");
-	state = (state & 0x000000ff);
+	  state = ReadDataByCommonIdentifier32(0x1101);
 
-	return (state >> 1) & 1;
+    if (!state) return 0;
+
+	  return (state >> 1) & 1;
 }
 
 
 int GetDiagnosticTroubleCodeCount()
 {
-    int response;
-
-    response = GetCommandResponseAsLong("220200\r");
-
-    if ((response & 0xff000000) >> 24 != 0x62)
-        return 0;
-
-    response = (response & 0x000000ff);
-
-    return response;
+    return ReadDataByCommonIdentifier32(0x0200);
 }
 
 
@@ -78,11 +70,11 @@ int GetEngineCoolantTemperature()
 {
     int temp;
 
-	temp = GetCommandResponseAsLong("220005\r");
-    temp = (temp & 0x000000ff);
-    temp -= 40; //Celsius
+	  temp = ReadDataByCommonIdentifier32(0x0005);
 
-    return temp;
+    if (!temp) return 0;
+
+    return temp - 40; //Celsius
 }
 
 
@@ -104,10 +96,11 @@ int GetEngineSpeed()
 
 int GetFanState()
 {
-	int fans;
+    int fans;
 
-	fans = GetCommandResponseAsLong("221103\r");
-	fans = (fans & 0x000000ff);
+	  fans = ReadDataByCommonIdentifier32(0x1103);
+
+    if (!fans) return 0;
 
     return (fans >> 3) & 1;
 }
@@ -150,12 +143,11 @@ float GetLongTermFuelTrim()
     int response;
     float percentage;
 
-    response = GetCommandResponseAsLong("220007\r");
+    response = ReadDataByCommonIdentifier32(0x0007);
 
-    if ((response & 0xff000000) >> 24 != 0x62)
-        return 0.0f;
+    if (!response) return 0.0f;
 
-    percentage = (float)(response & 0x000000ff);
+    percentage = (float) response;
     percentage = (percentage - 128.0f) * 0.78125f;
 
     return percentage;
@@ -167,12 +159,11 @@ float GetShortTermFuelTrim()
     int response;
     float percentage;
 
-    response = GetCommandResponseAsLong("220006\r");
+    response = ReadDataByCommonIdentifier32(0x0006);
 
-    if ((response & 0xff000000) >> 24 != 0x62)
-        return 0.0f;
+    if (!response) return 0.0f;
 
-    percentage = (float)(response & 0x000000ff);
+    percentage = (float) response;
     percentage = (percentage - 128.0f) * 0.78125f;
 
     return percentage;
@@ -184,12 +175,11 @@ float GetThrottlePosition()
     int response;
     float percentage;
 
-    response = GetCommandResponseAsLong("2217B6\r");
+    response = ReadDataByCommonIdentifier32(0x17B6);
 
-    if ((response & 0xff000000) >> 24 != 0x62)
-        return 0.0f;
+    if (!response) return 0.0f;
 
-    percentage = (float)(response & 0x000000ff);
+    percentage = (float) response;
     percentage = (percentage * 100.0f) / 256.0f;
 
     return percentage;
@@ -199,11 +189,10 @@ float GetThrottlePosition()
 int GetTransmissionFluidTemperature()
 {
     int temp, temp2;
-    //short scale;
-    //short adder;
 
-    temp = GetCommandResponseAsLong("2217B3\r");
-    temp = (temp & 0x000000ff);
+    temp = ReadDataByCommonIdentifier32(0x17B3);
+
+    if (!temp) return 0;
 
     /*
     This calculation is based on Scanguage's MTH
@@ -225,12 +214,9 @@ float GetTransmissionLinePressureSolenoidAmperage()
     int response;
     float amperage;
 
-    response = GetCommandResponseAsLong("2217B8\r");
+    response = ReadDataByCommonIdentifier32(0x17B8);
 
-    if ((response & 0xff000000) >> 24 != 0x62)
-        return 0.0f;
-
-    response = (response & 0xff);
+    if (!response) return 0.0f;
 
     amperage = (float) response;
     amperage /= 256.0f;
@@ -241,12 +227,7 @@ float GetTransmissionLinePressureSolenoidAmperage()
 
 int GetTransmissionOilPressureSwitchState()
 {
-    int state;
-
-    state = GetCommandResponseAsLong("221709\r");
-    state = (state & 0x000000ff);
-
-    return state;
+    return ReadDataByCommonIdentifier32(0x1709);
 }
 
 
@@ -254,12 +235,7 @@ char GetTransmissionRangeSensorPosition()
 {
     int position;
 
-    position = GetCommandResponseAsLong("2217B1\r");
-
-    if ((position & 0xff000000) >> 24 != 0x62)
-        return 'E'; //error;
-
-    position = (position & 0x000000ff);
+    position = ReadDataByCommonIdentifier32(0x17B1);
 
     switch (position)
     {
@@ -280,17 +256,13 @@ char GetTransmissionRangeSensorPosition()
 
 int GetTransmissionTurbineShaftSpeed()
 {
-	int speed;
+    int speed;
 
-	speed = GetCommandResponseAsLong("2217B0\r");
+    speed = ReadDataByCommonIdentifier32(0x17B0);
 
-	if ((speed & 0xff000000) >> 24 != 0x62)
-        return 0;
+	  if (!speed) return 0;
 
-	speed = (speed & 0x000000ff);
-	speed = (speed * 375) / 10;
-
-	return speed;
+	  return (speed * 375) / 10;
 }
 
 
