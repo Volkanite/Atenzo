@@ -16,6 +16,8 @@ typedef struct _PID
     char* Name;
     char* Unit;
     int Type;
+    int HasThreshold;
+    float Threshold;
     int Value;
     float Value2;
 }PID;
@@ -300,22 +302,22 @@ int main()
     int manualFanControl, tempHi, tempLo;
 
     PID ParameterIds[] = {
-        {"ECT","°C",0,0},
-        {"TFT","°C",0,0},
-        {"FAN",0,0,0},
-        {"BOO",0,0,0},
-        {"TOPS",0,0,0},
-        {"RPM",0,0,0},
-        {"TSS",0,0,0},
-        {"LPS","A",1,0},
-        {"TR",0,2,0},
-        {"TP","%",1,0},
-        {"DR",0,1,0},
-        {"LTFT",0,1,0},
-        {"STFT",0,1,0},
-        {"MAF","g/s",1,0},
-        {"FSS", 0,3,0},
-        {"DTCs",0,0,0}
+        {"ECT","°C",0,1,100.0f},
+        {"TFT","°C",0,1,100.0f},
+        {"FAN"},
+        {"BOO"},
+        {"TOPS"},
+        {"RPM"},
+        {"TSS"},
+        {"LPS","A",1},
+        {"TR",0,2},
+        {"TP","%",1},
+        {"DR",0,1},
+        {"LTFT",0,1,1,-10.93f},
+        {"STFT",0,1},
+        {"MAF","g/s",1},
+        {"FSS", 0,3},
+        {"DTCs"}
     };
 
     ScreenX = ScreenY = 0;
@@ -515,6 +517,21 @@ int main()
         {
             printw("%s: ", ParameterIds[i].Name);
 
+            if (ParameterIds[i].HasThreshold)
+            {
+                float value;
+
+                value = ParameterIds[i].Type ? ParameterIds[i].Value2 : (float) ParameterIds[i].Value;
+
+                if ((ParameterIds[i].Threshold > 0.0f && value > ParameterIds[i].Threshold)
+                 || (ParameterIds[i].Threshold < 0.0f && value < ParameterIds[i].Threshold))
+                {
+                    start_color();
+                    init_pair(1, COLOR_RED, COLOR_BLACK);
+                    attron(COLOR_PAIR(1));
+                }
+            }
+
             if (ParameterIds[i].Type == 0) //int
                 printw("%i", ParameterIds[i].Value);
             else if (ParameterIds[i].Type == 1) //float
@@ -526,6 +543,9 @@ int main()
 
             if (ParameterIds[i].Unit)
                 printw(" %s", ParameterIds[i].Unit);
+
+            if (ParameterIds[i].HasThreshold)
+                attroff(COLOR_PAIR(1));
 
             if (j == virtualColumns)
             {
