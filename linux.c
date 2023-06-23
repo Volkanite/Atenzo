@@ -368,6 +368,7 @@ int main()
             //Code in this block runs once every engine restart
 
             manualFanControl = 0;
+            start = delta = timeout = timeoutValue = 0;
         }
 
         previousEngineState = currentEngineState;
