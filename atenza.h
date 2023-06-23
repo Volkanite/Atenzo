@@ -1,6 +1,7 @@
 /* Diagnostic and Communications Management */
 int AuthenticateSession();
 int StartDiagnosticSession(int SessionId);
+int GetDiagnosticTroubleCodes(unsigned short* ArrayOfDTCs);
 
 /* Data Transmission */
 int GetBrakeSwitchState();

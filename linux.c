@@ -50,7 +50,7 @@ int ScreenX = 0;
 int ScreenY = 0;
 
 char * removeCharFromStr(char *string, char character);
-char * removeSpacesFromStr(char *string);
+//char * removeSpacesFromStr(char *string);
 
 void Send( char* Command )
 {
@@ -58,7 +58,7 @@ void Send( char* Command )
 }
 
 
-void GetCommandResponse( char* Command, char* buff )
+void GetCommandResponse( char* Command, char* buff, int BufferLength)
 {
     Send(Command);
     //read(fd, buffer, 100);
@@ -82,8 +82,7 @@ void GetCommandResponse( char* Command, char* buff )
    {
       //ncurses doesn't like the CRs
       removeCharFromStr(str, '\r');
-
-      strcpy(buff, str);
+      strncpy(buff, str, BufferLength);
    }
 }
 
@@ -92,8 +91,8 @@ long GetCommandResponseAsLong( char* Command )
 {
     char buffer[100];
 
-    GetCommandResponse(Command, buffer);
-    removeSpacesFromStr(buffer);
+    GetCommandResponse(Command, buffer, 100);
+    //removeSpacesFromStr(buffer);
 
     return strtol(buffer, NULL, 16);
 }
@@ -103,8 +102,8 @@ long long GetCommandResponseAsLongLong( char* Command )
 {
     char buffer[100];
 
-    GetCommandResponse(Command, buffer);
-    removeSpacesFromStr(buffer);
+    GetCommandResponse(Command, buffer, 100);
+    //removeSpacesFromStr(buffer);
 
     return strtoll(buffer, NULL, 16);
 }
@@ -132,7 +131,7 @@ void Echo(char* Command)
 {
     char buffer[100];
 
-    GetCommandResponse(Command, buffer);
+    GetCommandResponse(Command, buffer, 100);
     printw("%s", buffer);
     refresh();
 }
@@ -160,10 +159,10 @@ char * removeCharFromStr( char *string, char character )
 }
 
 
-char * removeSpacesFromStr( char *string )
+/*char * removeSpacesFromStr( char *string )
 {
   removeCharFromStr(string, ' ');
-}
+}*/
 
 
 long long current_timestamp()
@@ -284,11 +283,13 @@ int main()
     Echo("ATRV\r"); //read voltage
 
     //Set current protocol preset to ISO 15765, 11-bit Tx, 500kbps, DLC=8; High Speed CAN (HS-CAN)
-    GetCommandResponse("STP33\r", 0);
+    GetCommandResponse("STP33\r", 0,0);
 
-    GetCommandResponse("ATSH7E0\r", 0); // set the header of transmitted OBD messages
-    GetCommandResponse("ATL0\r", 0); // turn off line feed
-    GetCommandResponse("ATE0\r", 0); //Echo off
+    GetCommandResponse("ATSH7E0\r", 0,0); // set the header of transmitted OBD messages
+    GetCommandResponse("ATL0\r", 0,0); // turn off line feed
+    GetCommandResponse("ATE0\r", 0,0); //Echo off
+    GetCommandResponse("ATS0\r", 0,0); //Turn off spaces on OBD responses
+    GetCommandResponse("STCSEGR1\r", 0,0); //Disable PCI bytes
 
     int max_x, max_y;
     int currentEngineState, previousEngineState;
@@ -300,6 +301,7 @@ int main()
     long long start, delta;
     int timeout, timeoutValue;
     int manualFanControl, tempHi, tempLo;
+    int pidCleared;
 
     PID ParameterIds[] = {
         {"ECT","°C",0,1,100.0f},
@@ -317,7 +319,7 @@ int main()
         {"STFT",0,1},
         {"MAF","g/s",1},
         {"FSS", 0,3},
-        {"DTCs"}
+        {"DTCs",0,0,1,1.0f}
     };
 
     ScreenX = ScreenY = 0;
@@ -325,6 +327,8 @@ int main()
     fullPressure = releasePressure = awaitingFullPressure = 0;
     start = delta = timeout = timeoutValue = 0;
     manualFanControl = 0;
+    pidCleared = 0;
+
     tempHi = 95;
     tempLo = 90;
 
@@ -369,15 +373,45 @@ int main()
 
             manualFanControl = 0;
             start = delta = timeout = timeoutValue = 0;
+            pidCleared = 0;
         }
 
         previousEngineState = currentEngineState;
 
         //clear DTCs
-        if (Debug && ParameterIds[DTC_CNT].Value == 1)
+        if (Debug && ParameterIds[DTC_CNT].Value)
         {
-            StatusPrint("Clearing DTCs..");
-            GetCommandResponse("14FF00\r", 0); //Clear DTCs
+            if (!pidCleared)
+            {
+                int pidFound = 0;
+                char buffer[100], buffer2[150];
+                ushort DTCs[4];
+
+                GetDiagnosticTroubleCodes(DTCs);
+                strcpy(buffer, "DTCs:");
+
+                for (
+                  int i = 0;
+                  i < ParameterIds[DTC_CNT].Value && i < sizeof(DTCs)/sizeof(DTCs[0]);
+                  i++)
+                {
+                    snprintf(buffer2, 150, i?", %X":" %X", DTCs[i]);
+                    strcat(buffer, buffer2);
+
+                    if (DTCs[i] == 0x500)
+                        pidFound = 1;
+                }
+
+                StatusPrint(buffer);
+
+                if (pidFound)
+                {
+                    StatusPrint("Clearing DTCs..");
+                    GetCommandResponse("14FF00\r", 0,0); //Clear DTCs
+                }
+
+                pidCleared = 1;
+            }
         }
 
         if ((ParameterIds[ECT].Value > tempHi

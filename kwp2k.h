@@ -17,5 +17,6 @@ typedef enum
 }IOCP;
 
 
+int ReadDiagnosticTroubleCodesByStatus(byte StatusOfDTCRequest, unsigned short GroupOfDTC, unsigned short* ArrayOfDTCs);
 int ReadDataByCommonIdentifier32(short RecordCommonIdentifier);
 int InputOutputControlByCommonIdentifier(short InputOutputCommonIdentifier, byte InputOutputControlParameter, byte ControlState);

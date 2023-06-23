@@ -23,6 +23,12 @@ int StartDiagnosticSession( int SessionId )
 }
 
 
+int GetDiagnosticTroubleCodes( unsigned short* ArrayOfDTCs )
+{
+    return ReadDiagnosticTroubleCodesByStatus(0x00, 0xFF00, ArrayOfDTCs);
+}
+
+
 int AuthenticateSession()
 {
     long long response, key;
