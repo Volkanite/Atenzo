@@ -23,6 +23,12 @@ int StartDiagnosticSession( int SessionId )
 }
 
 
+int ClearDiagnosticTroubleCodes( unsigned short Group )
+{
+    return ClearDiagnosticInformation(Group);
+}
+
+
 int GetDiagnosticTroubleCodes( unsigned short* ArrayOfDTCs )
 {
     return ReadDiagnosticTroubleCodesByStatus(0x00, 0xFF00, ArrayOfDTCs);

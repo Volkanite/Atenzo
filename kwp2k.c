@@ -31,6 +31,20 @@ ushort GetWord( unsigned long long Value, int BytePosition, int NumberOfBytes )
 }
 
 
+int ClearDiagnosticInformation( ushort GroupOfDiagnosticInformation )
+{
+    int command, response;
+
+    command = (0x14 << 16) + (GroupOfDiagnosticInformation);
+    response = GetCommandResponse32(command);
+
+    if ((response >> 16) != 0x54)
+        return 0;
+        
+    return 1;
+}
+
+
 int ReadDiagnosticTroubleCodesByStatus(
     byte StatusOfDTCRequest,
     ushort GroupOfDTC,
