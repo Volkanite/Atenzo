@@ -23,9 +23,9 @@ int StartDiagnosticSession( int SessionId )
 }
 
 
-int ClearDiagnosticTroubleCodes( unsigned short Group )
+int ClearDiagnosticTroubleCodes()
 {
-    return ClearDiagnosticInformation(Group);
+    return ClearDiagnosticInformation(0xFF00);
 }
 
 

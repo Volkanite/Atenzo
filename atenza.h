@@ -1,7 +1,7 @@
 /* Diagnostic and Communications Management */
 int AuthenticateSession();
 int StartDiagnosticSession(int SessionId);
-int ClearDiagnosticTroubleCodes(unsigned short Group);
+int ClearDiagnosticTroubleCodes();
 int GetDiagnosticTroubleCodes(unsigned short* ArrayOfDTCs);
 
 /* Data Transmission */

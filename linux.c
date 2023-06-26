@@ -407,8 +407,7 @@ int main()
                 if (pidFound)
                 {
                     StatusPrint("Clearing DTCs..");
-                    //GetCommandResponse("14FF00\r", 0,0); //Clear DTCs
-                    ClearDiagnosticTroubleCodes(0xFF00);
+                    ClearDiagnosticTroubleCodes();
                 }
 
                 pidCleared = 1;
