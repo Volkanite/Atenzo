@@ -301,7 +301,7 @@ int main()
     long long start, delta;
     int timeout, timeoutValue;
     int manualFanControl, tempHi, tempLo;
-    int pidCleared;
+    int prev_dtc_count;
 
     PID ParameterIds[] = {
         {"ECT","°C",0,1,100.0f},
@@ -327,7 +327,7 @@ int main()
     fullPressure = releasePressure = awaitingFullPressure = 0;
     start = delta = timeout = timeoutValue = 0;
     manualFanControl = 0;
-    pidCleared = 0;
+    prev_dtc_count = 0;
 
     tempHi = 95;
     tempLo = 90;
@@ -373,46 +373,42 @@ int main()
 
             manualFanControl = 0;
             start = delta = timeout = timeoutValue = 0;
-            pidCleared = 0;
         }
 
         previousEngineState = currentEngineState;
 
-        //clear DTCs
-        if (Debug && ParameterIds[DTC_CNT].Value)
+        //scan DTCs
+        if (ParameterIds[DTC_CNT].Value && prev_dtc_count != ParameterIds[DTC_CNT].Value)
         {
-            if (!pidCleared)
+            int dtcFound = 0;
+            char buffer[100], buffer2[150];
+            ushort DTCs[4];
+
+            GetDiagnosticTroubleCodes(DTCs);
+            strcpy(buffer, "DTCs:");
+
+            for (
+              int i = 0;
+              i < ParameterIds[DTC_CNT].Value && i < sizeof(DTCs)/sizeof(DTCs[0]);
+              i++)
             {
-                int pidFound = 0;
-                char buffer[100], buffer2[150];
-                ushort DTCs[4];
+                snprintf(buffer2, 150, i?", %X":" %X", DTCs[i]);
+                strcat(buffer, buffer2);
 
-                GetDiagnosticTroubleCodes(DTCs);
-                strcpy(buffer, "DTCs:");
+                if (DTCs[i] == 0x500)
+                    dtcFound = 1;
+            }
 
-                for (
-                  int i = 0;
-                  i < ParameterIds[DTC_CNT].Value && i < sizeof(DTCs)/sizeof(DTCs[0]);
-                  i++)
-                {
-                    snprintf(buffer2, 150, i?", %X":" %X", DTCs[i]);
-                    strcat(buffer, buffer2);
+            StatusPrint(buffer);
 
-                    if (DTCs[i] == 0x500)
-                        pidFound = 1;
-                }
-
-                StatusPrint(buffer);
-
-                if (pidFound)
-                {
-                    StatusPrint("Clearing DTCs..");
-                    ClearDiagnosticTroubleCodes();
-                }
-
-                pidCleared = 1;
+            if (Debug && dtcFound)
+            {
+                StatusPrint("Clearing DTCs..");
+                ClearDiagnosticTroubleCodes();
             }
         }
+
+        prev_dtc_count = ParameterIds[DTC_CNT].Value;
 
         if ((ParameterIds[ECT].Value > tempHi
             || ParameterIds[TFT].Value > tempHi)
