@@ -1,5 +1,6 @@
 #include "atenza.h"
 #include "kwp2k.h"
+#include <math.h>
 
 
 long GetCommandResponseAsLong(char* Command);
@@ -200,24 +201,17 @@ float GetThrottlePosition()
 
 int GetTransmissionFluidTemperature()
 {
-    int temp, temp2;
+    int response;
+    float temperature;
 
-    temp = ReadDataByCommonIdentifier32(0x17B3);
+    response = ReadDataByCommonIdentifier32(0x17B3);
 
-    if (!temp) return 0;
+    if (!response) return 0;
 
-    /*
-    This calculation is based on Scanguage's MTH
-    field and seems to be accurate
-    //TXD        RXF          RXD  MTH
-    //07E02217B3 0462051706B3 3008 002A0019FFC7
-    */
+    temperature = (float)response;
+    temperature = ((temperature * 240.0) / 256.0) - 53.0;
 
-    //0xFFC7 = -57
-    temp = ((temp * 0x2A) / 0x19) + -57; //Fahrenheit
-    temp2 = (temp - 32) * (5.0/9.0); //Celsius
-
-    return temp2;
+    return round(temperature);
 }
 
 
