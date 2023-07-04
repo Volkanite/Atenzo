@@ -26,6 +26,7 @@ typedef enum _PID_INDEX
 {
     ECT,
     TFT,
+    IAT,
     FAN,
     BOO,
     OP_SW_B,
@@ -306,6 +307,7 @@ int main()
     PID ParameterIds[] = {
         {"ECT","°C",0,1,100.0f},
         {"TFT","°C",0,1,100.0f},
+        {"IAT","°C"},
         {"FAN"},
         {"BOO"},
         {"TOPS"},
@@ -356,6 +358,7 @@ int main()
         ParameterIds[LONGFT1].Value2 = GetLongTermFuelTrim();
         ParameterIds[SHRTFT1].Value2 = GetShortTermFuelTrim();
         ParameterIds[MAF].Value2 = GetIntakeAirMassFlowRate();
+        ParameterIds[IAT].Value = GetIntakeAirTemperature();
         ParameterIds[FUELSYS1].Value = GetFuelSystemStatus();
         ParameterIds[DTC_CNT].Value = GetDiagnosticTroubleCodeCount();
 

@@ -151,6 +151,18 @@ float GetIntakeAirMassFlowRate()
 }
 
 
+int GetIntakeAirTemperature()
+{
+    int response;
+
+    response = ReadDataByCommonIdentifier32(0x000F);
+
+    if (!response) return 0;
+
+    return response - 40; //Celsius
+}
+
+
 float GetLongTermFuelTrim()
 {
     int response;

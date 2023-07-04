@@ -12,6 +12,7 @@ int GetEngineSpeed();
 int GetFanState();
 int GetFuelSystemStatus();
 float GetIntakeAirMassFlowRate();
+int GetIntakeAirTemperature();
 float GetLongTermFuelTrim();
 float GetShortTermFuelTrim();
 float GetThrottlePosition();
