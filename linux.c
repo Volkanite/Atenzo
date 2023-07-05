@@ -214,6 +214,29 @@ int UnlockActuation()
 }
 
 
+int GetPidLen( PID* ParameterId )
+{
+    char buffer[20];
+    int len;
+
+    len = snprintf(buffer, 20, "%s: ", ParameterId->Name);
+
+    if (ParameterId->Type == 0) //int
+        len += snprintf(buffer, 20, "%i", ParameterId->Value);
+    else if (ParameterId->Type == 1) //float
+        len += snprintf(buffer, 20, "%.2f", ParameterId->Value2);
+    else if (ParameterId->Type == 2) //char
+        len += snprintf(buffer, 20, "%c", ParameterId->Value);
+    else if (ParameterId->Type == 3) //string, fuelsys1 is the only string for now
+        len += snprintf(buffer, 20, "%s", GetFuelSysStatus(ParameterId->Value));
+
+    if (ParameterId->Unit)
+        len += snprintf(buffer, 20, " %s", ParameterId->Unit);
+
+    return len;
+}
+
+
 int main()
 {
     fd = open("/dev/ttyUSB0", O_RDWR);
@@ -545,10 +568,24 @@ int main()
         clrtobot(); //clear line
         refresh();
 
-        int j = 1;
+        //int j = 1;
+        int lineLen = 0;
+        int pidLen = 0;
 
         for (int i = 0; i < sizeof(ParameterIds)/sizeof(ParameterIds[0]); i++)
         {
+            pidLen = GetPidLen(&ParameterIds[i]);
+
+            if (lineLen + pidLen >= max_x)
+            {
+                printw("\n");
+                lineLen = 0;
+            }
+            else if (i)
+            {
+                printw("  ");
+            }
+
             printw("%s: ", ParameterIds[i].Name);
 
             if (ParameterIds[i].HasThreshold)
@@ -581,16 +618,7 @@ int main()
             if (ParameterIds[i].HasThreshold)
                 attroff(COLOR_PAIR(1));
 
-            if (j == virtualColumns)
-            {
-                printw("\n");
-                j = 1;
-            }
-            else
-            {
-                printw("  ");
-                j++;
-            }
+            lineLen += pidLen + 2;
         }
 
         refresh();
