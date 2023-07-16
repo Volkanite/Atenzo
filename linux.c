@@ -408,29 +408,33 @@ int main()
         {
             int dtcFound = 0;
             char buffer[100], buffer2[150];
-            ushort DTCs[4];
+            ushort DTCs[8];
 
-            GetDiagnosticTroubleCodes(DTCs);
-            strcpy(buffer, "DTCs:");
-
-            for (
-              int i = 0;
-              i < ParameterIds[DTC_CNT].Value && i < sizeof(DTCs)/sizeof(DTCs[0]);
-              i++)
+            memset(DTCs, 0, sizeof(DTCs));
+            
+            if(GetDiagnosticTroubleCodes(DTCs))
             {
-                snprintf(buffer2, 150, i?", %X":" %X", DTCs[i]);
-                strcat(buffer, buffer2);
+                strcpy(buffer, "DTCs:");
 
-                if (DTCs[i] == 0x500)
-                    dtcFound = 1;
-            }
+                for (
+                  int i = 0;
+                  i < ParameterIds[DTC_CNT].Value && i < sizeof(DTCs)/sizeof(DTCs[0]);
+                  i++)
+                {
+                    snprintf(buffer2, 150, i?", %X":" %X", DTCs[i]);
+                    strcat(buffer, buffer2);
 
-            StatusPrint(buffer);
+                    if (DTCs[i] == 0x500)
+                        dtcFound = 1;
+                }
 
-            if (Debug && dtcFound)
-            {
-                StatusPrint("Clearing DTCs..");
-                ClearDiagnosticTroubleCodes();
+                StatusPrint(buffer);
+
+                if (Debug && dtcFound)
+                {
+                    StatusPrint("Clearing DTCs..");
+                    ClearDiagnosticTroubleCodes();
+                }
             }
         }
 
