@@ -340,7 +340,7 @@ int main()
         {"TR",0,2},
         {"TP","%",1},
         {"DR",0,1},
-        {"LTFT",0,1,1,-10.93f},
+        {"LTFT",0,1,1,-7.81f},
         {"STFT",0,1},
         {"MAF","g/s",1},
         {"FSS", 0,3},
@@ -411,7 +411,7 @@ int main()
             ushort DTCs[8];
 
             memset(DTCs, 0, sizeof(DTCs));
-            
+
             if(GetDiagnosticTroubleCodes(DTCs))
             {
                 strcpy(buffer, "DTCs:");
