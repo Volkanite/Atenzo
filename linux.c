@@ -515,6 +515,10 @@ int main()
             if (start)
             {
                 delta = current_timestamp() - start;
+
+                if (timeoutValue - delta < 30000)
+                    timeoutValue += 30000;
+
                 timeoutInMinutes = (float)(timeoutValue - delta) / 60000.0f;
 
                 snprintf(buffer, 50, "Resuming full pressure LPS for %.1f mins", timeoutInMinutes);
@@ -551,7 +555,17 @@ int main()
 
             if (delta > timeoutValue)
             {
-                timeout = 1;
+                if (ParameterIds[THOP].Value2 > 0.30
+                    && ParameterIds[BOO].Value == 1
+                    && ParameterIds[DR].Value2 > 0.40)
+                {
+                    StatusPrint("Extending timer for another 30s");
+                    timeoutValue += 30000;
+                }
+                else
+                {
+                    timeout = 1;
+                }
             }
         }
 
