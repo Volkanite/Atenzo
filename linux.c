@@ -556,8 +556,10 @@ int main()
             if (delta > timeoutValue)
             {
                 if (ParameterIds[THOP].Value2 > 0.30
-                    && ParameterIds[BOO].Value == 1
-                    && ParameterIds[DR].Value2 > 0.40)
+                    && ParameterIds[THOP].Value2 < 5.0
+                    && ParameterIds[RPM].Value < 1400
+                    && ParameterIds[TFT].Value < 72
+                    && ParameterIds[DR].Value2 > 0.20)
                 {
                     StatusPrint("Extending timer for another 30s");
                     timeoutValue += 30000;
