@@ -504,7 +504,7 @@ int main()
                 timeoutValue = 30000;
         }
 
-        if (awaitingFullPressure && ParameterIds[THOP].Value2 == 0.0)
+        if (awaitingFullPressure && ParameterIds[THOP].Value2 < 0.78)
         {
             char buffer[50];
             float timeoutInMinutes;
@@ -556,9 +556,9 @@ int main()
             if (delta > timeoutValue)
             {
                 if (ParameterIds[THOP].Value2 > 0.30
-                    && ParameterIds[THOP].Value2 < 5.0
-                    && ParameterIds[RPM].Value < 1400
-                    && ParameterIds[TFT].Value < 72
+                    && ParameterIds[THOP].Value2 < 6.0
+                    && ParameterIds[RPM].Value < 1300
+                    && ParameterIds[TFT].Value < 74
                     && ParameterIds[DR].Value2 > 0.20)
                 {
                     StatusPrint("Extending timer for another 30s");
