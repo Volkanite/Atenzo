@@ -17,6 +17,7 @@ float GetLongTermFuelTrim();
 float GetShortTermFuelTrim();
 float GetThrottlePosition();
 int GetTransmissionFluidTemperature();
+int GetTransmissionForwardGearCommanded();
 float GetTransmissionLinePressureSolenoidAmperage();
 int GetTransmissionOilPressureSwitchState();
 char GetTransmissionRangeSensorPosition();

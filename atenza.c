@@ -227,6 +227,29 @@ int GetTransmissionFluidTemperature()
 }
 
 
+int GetTransmissionForwardGearCommanded()
+{
+    int response;
+
+    response = ReadDataByCommonIdentifier32(0x17B2);
+
+    switch (response)
+    {
+        case 1: return 1;
+        case 2: return 2;
+        case 4: return 3;
+        case 8: return 4;
+        case 16: return 5;
+        case 32: return 6;
+
+        //error
+        default: return 0;
+    }
+
+    return 0;
+}
+
+
 float GetTransmissionLinePressureSolenoidAmperage()
 {
     int response;

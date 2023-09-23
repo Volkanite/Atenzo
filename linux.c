@@ -40,7 +40,8 @@ typedef enum _PID_INDEX
     SHRTFT1,
     MAF,
     FUELSYS1,
-    DTC_CNT
+    DTC_CNT,
+    GEAR
 
 } PID_INDEX;
 
@@ -344,7 +345,8 @@ int main()
         {"STFT",0,1},
         {"MAF","g/s",1},
         {"FSS", 0,3},
-        {"DTCs",0,0,1,1.0f}
+        {"DTCs",0,0,1,1.0f},
+        {"GR"}
     };
 
     ScreenX = ScreenY = 0;
@@ -377,6 +379,7 @@ int main()
         ParameterIds[TSS].Value = GetTransmissionTurbineShaftSpeed();
         ParameterIds[LPS].Value2 = GetTransmissionLinePressureSolenoidAmperage();
         ParameterIds[TR].Value = GetTransmissionRangeSensorPosition();
+        ParameterIds[GEAR].Value = GetTransmissionForwardGearCommanded();
         ParameterIds[THOP].Value2 = GetThrottlePosition();
         ParameterIds[LONGFT1].Value2 = GetLongTermFuelTrim();
         ParameterIds[SHRTFT1].Value2 = GetShortTermFuelTrim();
