@@ -71,6 +71,10 @@ int ScreenX = 0;
 int ScreenY = 0;
 int64_t EngineStartTime;
 
+#define FAN_CTRL_HI 95
+#define FAN_CTRL_LO 90
+
+
 char * removeCharFromStr(char *string, char character);
 //char * removeSpacesFromStr(char *string);
 
@@ -398,8 +402,8 @@ int main()
     manualFanControl = 0;
     prev_dtc_count = 0;
 
-    tempHi = 95;
-    tempLo = 90;
+    tempHi = FAN_CTRL_HI;
+    tempLo = FAN_CTRL_LO;
 
     initscr(); //init ncurses
     getyx(stdscr, ScreenY, ScreenX); //backup cursor position
@@ -494,22 +498,29 @@ int main()
         {
             manualFanControl = 1;
 
-            StatusPrint("turning on FAN..");
-
-            UnlockActuation();
-            SetFanState(1);
+            if (UnlockActuation())
+            {
+                if (SetFanState(1))
+                    StatusPrint("turning on FAN..");
+                else
+                    StatusPrint("failed to turn on FAN; SetFanState() failed!");
+            }
+            else
+            {
+                StatusPrint("UnlockActuation() failed! Fan setting failed!");
+            }
         }
         else if (manualFanControl)
         {
             if (ParameterIds[TR].Value == 'P')
             {
-                tempHi = 90;
-                tempLo = 85;
+                tempHi = FAN_CTRL_HI - 5;
+                tempLo = FAN_CTRL_LO - 5;
             }
             else
             {
-                tempHi = 95;
-                tempLo = 90;
+                tempHi = FAN_CTRL_HI;
+                tempLo = FAN_CTRL_LO;
             }
 
             if (ParameterIds[ECT].Value < tempLo

@@ -48,6 +48,9 @@ int AuthenticateSession()
 
     seed = (response & 0x0000ffffff);
 
+    if (seed == 0)
+        return 1; //already unlocked
+
     key = GetKeyFromSeed(seed);
     key += 0x2702000000;
 
