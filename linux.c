@@ -9,6 +9,7 @@
 #include <sys/time.h>
 
 #include "atenza.h"
+#include "sound.h"
 
 
 typedef struct _PID
@@ -302,6 +303,7 @@ int main()
     }
 
     initscr();
+    InitializeSound();
 
     // Reboot device to flush any bad settings
     Send("ATWS\r"); //soft reset
@@ -447,6 +449,7 @@ int main()
                 {
                     StatusPrint("Clearing DTCs..");
                     ClearDiagnosticTroubleCodes();
+                    PlaySound();
                 }
             }
         }
@@ -498,6 +501,7 @@ int main()
             float time;
 
             StatusPrint("Release throttle to commit LPS..");
+            PlaySound();
 
             awaitingFullPressure = 1;
             temp = ParameterIds[TFT].Value;
@@ -542,6 +546,7 @@ int main()
             }
 
             StatusPrint(buffer);
+            PlaySound();
 
             fullPressure = 1;
             awaitingFullPressure = 0;
@@ -595,6 +600,7 @@ int main()
                 start = delta = timeout = timeoutValue = 0;
 
             StatusPrint("Returning LPS control to ECU..");
+            PlaySound();
         }
 
         move(ScreenY, ScreenX); //restore cursor pos
@@ -633,6 +639,7 @@ int main()
                     start_color();
                     init_pair(1, COLOR_RED, COLOR_BLACK);
                     attron(COLOR_PAIR(1));
+                    PlaySound();
                 }
             }
 
@@ -658,5 +665,6 @@ int main()
         usleep(500000);
     }
 
+    TerminateSound();
     return 0;
 }
