@@ -242,9 +242,19 @@ int main()
 {
     fd = open("/dev/ttyUSB0", O_RDWR);
 
-    if (!fd)
+    if (fd == -1)
     {
-        printf("what are you doing bruv?\n");
+        printf("Could not open ttyUSB0: %s\n", strerror(errno));
+
+        switch (errno)
+        {
+            case 2: printf("Is the adapter plugged in?\n");
+                break;
+            case 13: printf("Have you added yourself to the dialout group?\n"
+            "If in a rush, you can also try running the program with sudo.\n");
+                break;
+        }
+
         return 0;
     }
 
