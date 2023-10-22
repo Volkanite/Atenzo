@@ -40,7 +40,7 @@ int ClearDiagnosticInformation( ushort GroupOfDiagnosticInformation )
 
     if ((response >> 16) != 0x54)
         return 0;
-        
+
     return 1;
 }
 
@@ -101,6 +101,21 @@ int ReadDataByCommonIdentifier32( short RecordCommonIdentifier )
         return 0;
 
     return (response & 0x000000ff);
+}
+
+
+int ReadDataByCommonIdentifier64( short RecordCommonIdentifier )
+{
+    int command;
+    long long response;
+
+    command = (0x22 << 16) + (RecordCommonIdentifier);
+    response = GetCommandResponse64(command);
+
+    if ((response & 0xff00000000) >> 32 != 0x62)
+        return 0;
+
+    return (response & 0xffff);
 }
 
 

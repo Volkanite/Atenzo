@@ -20,4 +20,5 @@ typedef enum
 int ClearDiagnosticInformation(unsigned short GroupOfDiagnosticInformation);
 int ReadDiagnosticTroubleCodesByStatus(byte StatusOfDTCRequest, unsigned short GroupOfDTC, unsigned short* ArrayOfDTCs);
 int ReadDataByCommonIdentifier32(short RecordCommonIdentifier);
+int ReadDataByCommonIdentifier64(short RecordCommonIdentifier);
 int InputOutputControlByCommonIdentifier(short InputOutputCommonIdentifier, byte InputOutputControlParameter, byte ControlState);

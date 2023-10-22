@@ -93,15 +93,11 @@ int GetEngineCoolantTemperature()
 
 int GetEngineSpeed()
 {
-    long long response;
-    short rpm;
+    int rpm;
 
-    response = GetCommandResponseAsLongLong("22000C\r");
+    rpm = ReadDataByCommonIdentifier64(0x000C);
 
-    if ((response & 0xff00000000) >> 32 != 0x62)
-        return 0;
-
-    rpm = (response & 0xffff);
+    if (!rpm) return 0;
 
     return rpm * 0.25;
 }
@@ -121,30 +117,26 @@ int GetFanState()
 
 int GetFuelSystemStatus()
 {
-    long long response;
+    int response;
 
-    response = GetCommandResponseAsLongLong("220003\r");
+    response = ReadDataByCommonIdentifier64(0x0003);
 
-    if ((response & 0xff00000000) >> 32 != 0x62)
-        return 0;
+    if (!response) return 0;
 
-    response = (response & 0x000000ff00) >> 8;
-
-    return response;
+    return response >> 8;
 }
 
 
 float GetIntakeAirMassFlowRate()
 {
-    long long response;
+    int response;
     float flowRate;
 
-    response = GetCommandResponseAsLongLong("220010\r");
+    response = ReadDataByCommonIdentifier64(0x0010);
 
-    if ((response & 0xff00000000) >> 32 != 0x62)
-        return 0.0f;
+    if (!response) return 0.0f;
 
-    flowRate = (float)(response & 0x000000ffff);
+    flowRate = (float)(response);
     flowRate = (flowRate * 0.01f);
 
     return flowRate;
