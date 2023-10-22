@@ -16,12 +16,23 @@ typedef struct _PID
 {
     char* Name;
     char* Unit;
-    int Type;
+    int ValueType; //0=int,1=float
     int HasThreshold;
     float Threshold;
     int Value;
     float Value2;
 }PID;
+
+
+typedef enum _PidValueType
+{
+    Type_Int,
+    Type_Float,
+    Type_Char,
+    Type_String
+
+}PidValueType;
+
 
 typedef enum _PID_INDEX
 {
@@ -42,7 +53,8 @@ typedef enum _PID_INDEX
     MAF,
     FUELSYS1,
     DTC_CNT,
-    GEAR
+    GEAR,
+    VPWR
 
 } PID_INDEX;
 
@@ -223,13 +235,13 @@ int GetPidLen( PID* ParameterId )
 
     len = snprintf(buffer, 20, "%s: ", ParameterId->Name);
 
-    if (ParameterId->Type == 0) //int
+    if (ParameterId->ValueType == Type_Int) //int
         len += snprintf(buffer, 20, "%i", ParameterId->Value);
-    else if (ParameterId->Type == 1) //float
+    else if (ParameterId->ValueType == Type_Float) //float
         len += snprintf(buffer, 20, "%.2f", ParameterId->Value2);
-    else if (ParameterId->Type == 2) //char
+    else if (ParameterId->ValueType == Type_Char) //char
         len += snprintf(buffer, 20, "%c", ParameterId->Value);
-    else if (ParameterId->Type == 3) //string, fuelsys1 is the only string for now
+    else if (ParameterId->ValueType == Type_String) //string, fuelsys1 is the only string for now
         len += snprintf(buffer, 20, "%s", GetFuelSysStatus(ParameterId->Value));
 
     if (ParameterId->Unit)
@@ -341,24 +353,25 @@ int main()
     int prev_dtc_count;
 
     PID ParameterIds[] = {
-        {"ECT","°C",0,1,100.0f},
-        {"TFT","°C",0,1,100.0f},
+        {"ECT","°C",Type_Int,1,100.0f},
+        {"TFT","°C",Type_Int,1,100.0f},
         {"IAT","°C"},
         {"FAN"},
         {"BOO"},
         {"TOPS"},
         {"RPM"},
         {"TSS"},
-        {"LPS","A",1},
+        {"LPS","A",Type_Float},
         {"TR",0,2},
-        {"TP","%",1},
-        {"DR",0,1},
-        {"LTFT",0,1,1,-12.00f},
-        {"STFT",0,1},
-        {"MAF","g/s",1},
+        {"TP","%",Type_Float},
+        {"DR",0,Type_Float},
+        {"LTFT",0,Type_Float,1,-12.00f},
+        {"STFT",0,Type_Float},
+        {"MAF","g/s",Type_Float},
         {"FSS", 0,3},
-        {"DTCs",0,0,1,1.0f},
-        {"GR"}
+        {"DTCs",0,Type_Int,1,1.0f},
+        {"GR"},
+        {"VPWR","V",Type_Float}
     };
 
     ScreenX = ScreenY = 0;
@@ -399,6 +412,7 @@ int main()
         ParameterIds[IAT].Value = GetIntakeAirTemperature();
         ParameterIds[FUELSYS1].Value = GetFuelSystemStatus();
         ParameterIds[DTC_CNT].Value = GetDiagnosticTroubleCodeCount();
+        ParameterIds[VPWR].Value2 = GetControlModuleVoltage();
 
         //Calculated values
         if (ParameterIds[RPM].Value && ParameterIds[TSS].Value)
@@ -631,7 +645,7 @@ int main()
             {
                 float value;
 
-                value = ParameterIds[i].Type ? ParameterIds[i].Value2 : (float) ParameterIds[i].Value;
+                value = ParameterIds[i].ValueType ? ParameterIds[i].Value2 : (float) ParameterIds[i].Value;
 
                 if ((ParameterIds[i].Threshold > 0.0f && value > ParameterIds[i].Threshold)
                  || (ParameterIds[i].Threshold < 0.0f && value < ParameterIds[i].Threshold))
@@ -643,13 +657,13 @@ int main()
                 }
             }
 
-            if (ParameterIds[i].Type == 0) //int
+            if (ParameterIds[i].ValueType == Type_Int) //int
                 printw("%i", ParameterIds[i].Value);
-            else if (ParameterIds[i].Type == 1) //float
+            else if (ParameterIds[i].ValueType == Type_Float) //float
                 printw("%.2f", ParameterIds[i].Value2);
-            else if (ParameterIds[i].Type == 2) //char
+            else if (ParameterIds[i].ValueType == Type_Char) //char
                 printw("%c", ParameterIds[i].Value);
-            else if (ParameterIds[i].Type == 3) //string, fuelsys1 is the only string for now
+            else if (ParameterIds[i].ValueType == Type_String) //string, fuelsys1 is the only string for now
                 printw("%s", GetFuelSysStatus(ParameterIds[FUELSYS1].Value));
 
             if (ParameterIds[i].Unit)

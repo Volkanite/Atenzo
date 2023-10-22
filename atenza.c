@@ -73,6 +73,21 @@ int GetBrakeSwitchState()
 }
 
 
+float GetControlModuleVoltage()
+{
+    int response;
+    float voltage;
+
+    response = ReadDataByCommonIdentifier64(0x0042);
+
+    if (!response) return 0.0f;
+
+    voltage = (float)response;
+
+    return voltage * 0.001f;
+}
+
+
 int GetDiagnosticTroubleCodeCount()
 {
     return ReadDataByCommonIdentifier32(0x0200);
