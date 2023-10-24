@@ -12,6 +12,9 @@
 #include "sound.h"
 
 
+typedef struct _PID PID;
+typedef int (*PID_CONDITIONAL_THRESHOLD)(PID* ParameterIdsBase);
+
 typedef struct _PID
 {
     char* Name;
@@ -19,6 +22,7 @@ typedef struct _PID
     int ValueType; //0=int,1=float
     int HasThreshold;
     float Threshold;
+    PID_CONDITIONAL_THRESHOLD ConditionalThreshold;
     int Value;
     float Value2;
 }PID;
@@ -58,11 +62,14 @@ typedef enum _PID_INDEX
 
 } PID_INDEX;
 
+#define TRUE 1
+#define FALSE 0
 
 int fd = 0;
 int Debug = 0;
 int ScreenX = 0;
 int ScreenY = 0;
+int64_t EngineStartTime;
 
 char * removeCharFromStr(char *string, char character);
 //char * removeSpacesFromStr(char *string);
@@ -174,12 +181,9 @@ char * removeCharFromStr( char *string, char character )
 }
 
 
-/*char * removeSpacesFromStr( char *string )
-{
-  removeCharFromStr(string, ' ');
-}*/
-
-
+/*
+Return current timestamp in milliseconds (64-bit int)
+*/
 long long current_timestamp()
 {
     struct timeval te;
@@ -248,6 +252,18 @@ int GetPidLen( PID* ParameterId )
         len += snprintf(buffer, 20, " %s", ParameterId->Unit);
 
     return len;
+}
+
+
+int IsVoltageGood( PID* ParameterIdsBasePtr )
+{
+    if (current_timestamp() - EngineStartTime < 4000)
+        return 1;
+
+    if (ParameterIdsBasePtr[RPM].Value > 550 && ParameterIdsBasePtr[VPWR].Value2 < 13.3)
+        return 0;
+    else
+        return 1;
 }
 
 
@@ -371,11 +387,12 @@ int main()
         {"FSS", 0,3},
         {"DTCs",0,Type_Int,1,1.0f},
         {"GR"},
-        {"VPWR","V",Type_Float}
+        {"VPWR","V",Type_Float,FALSE,0.0f,IsVoltageGood}
     };
 
     ScreenX = ScreenY = 0;
     currentEngineState = previousEngineState = 0;
+    EngineStartTime = 0;
     fullPressure = releasePressure = awaitingFullPressure = 0;
     start = delta = timeout = timeoutValue = 0;
     manualFanControl = 0;
@@ -428,6 +445,7 @@ int main()
 
             manualFanControl = 0;
             start = delta = timeout = timeoutValue = 0;
+            EngineStartTime = current_timestamp();
         }
 
         previousEngineState = currentEngineState;
@@ -627,6 +645,9 @@ int main()
 
         for (int i = 0; i < sizeof(ParameterIds)/sizeof(ParameterIds[0]); i++)
         {
+            int colorChanged;
+
+            colorChanged = FALSE;
             pidLen = GetPidLen(&ParameterIds[i]);
 
             if (lineLen + pidLen >= max_x)
@@ -641,18 +662,23 @@ int main()
 
             printw("%s: ", ParameterIds[i].Name);
 
-            if (ParameterIds[i].HasThreshold)
+            if (ParameterIds[i].HasThreshold || ParameterIds[i].ConditionalThreshold)
             {
                 float value;
 
+                //convert everything to floatational numbers because the Threshold values are all floats
                 value = ParameterIds[i].ValueType ? ParameterIds[i].Value2 : (float) ParameterIds[i].Value;
 
                 if ((ParameterIds[i].Threshold > 0.0f && value > ParameterIds[i].Threshold)
-                 || (ParameterIds[i].Threshold < 0.0f && value < ParameterIds[i].Threshold))
+                 || (ParameterIds[i].Threshold < 0.0f && value < ParameterIds[i].Threshold)
+                 || (ParameterIds[i].ConditionalThreshold && !ParameterIds[i].ConditionalThreshold(ParameterIds)))
                 {
+                    colorChanged = TRUE;
+
                     start_color();
                     init_pair(1, COLOR_RED, COLOR_BLACK);
                     attron(COLOR_PAIR(1));
+
                     PlaySound();
                 }
             }
@@ -669,7 +695,7 @@ int main()
             if (ParameterIds[i].Unit)
                 printw(" %s", ParameterIds[i].Unit);
 
-            if (ParameterIds[i].HasThreshold)
+            if (colorChanged)
                 attroff(COLOR_PAIR(1));
 
             lineLen += pidLen + 2;
