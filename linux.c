@@ -389,7 +389,7 @@ int main()
         {"TR",0,2},
         {"TP","%",Type_Float},
         {"DR",0,Type_Float},
-        {"LTFT",0,Type_Float,1,-13.00f},
+        {"LTFT",0,Type_Float,1,-14.00f},
         {"STFT",0,Type_Float},
         {"MAF","g/s",Type_Float},
         {"FSS", 0,3},
