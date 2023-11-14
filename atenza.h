@@ -10,7 +10,7 @@ float GetControlModuleVoltage();
 int GetDiagnosticTroubleCodeCount();
 int GetEngineCoolantTemperature();
 int GetEngineSpeed();
-int GetFanState();
+int GetFanState(int* Fan1, int* Fan2);
 int GetFuelSystemStatus();
 float GetIntakeAirMassFlowRate();
 int GetIntakeAirTemperature();
@@ -25,7 +25,7 @@ char GetTransmissionRangeSensorPosition();
 int GetTransmissionTurbineShaftSpeed();
 
 /* Input / Output Control */
-int SetFanState(int State);
+int SetFanState(int Index, int State);
 int SetTransmissionLinePressureSolenoidAmperage(float Amperage);
 
 /* Session IDs */

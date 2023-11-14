@@ -43,7 +43,8 @@ typedef enum _PID_INDEX
     ECT,
     TFT,
     IAT,
-    FAN,
+    FAN1,
+    FAN2,
     BOO,
     OP_SW_B,
     RPM,
@@ -71,8 +72,9 @@ int ScreenX = 0;
 int ScreenY = 0;
 int64_t EngineStartTime;
 
-#define FAN_CTRL_HI 95
-#define FAN_CTRL_LO 90
+#define FAN_CTRL_HI     95
+#define FAN_CTRL_LO     90
+#define FAN_CTRL_CRIT   100
 
 
 char * removeCharFromStr(char *string, char character);
@@ -373,14 +375,15 @@ int main()
     char buffer[100];
     long long start, delta;
     int timeout, timeoutValue;
-    int manualFanControl, tempHi, tempLo;
+    int manualFanControl, tempHi, tempLo, fan1, fan2;
     int prev_dtc_count;
 
     PID ParameterIds[] = {
         {"ECT","°C",Type_Int,1,100.0f},
         {"TFT","°C",Type_Int,1,100.0f},
         {"IAT","°C"},
-        {"FAN"},
+        {"FAN1"},
+        {"FAN2"},
         {"BOO"},
         {"TOPS"},
         {"RPM"},
@@ -421,7 +424,7 @@ int main()
     while (1)
     {
         ParameterIds[BOO].Value = GetBrakeSwitchState();
-        ParameterIds[FAN].Value = GetFanState();
+        //ParameterIds[FAN].Value = GetFanState();
         ParameterIds[ECT].Value = GetEngineCoolantTemperature();
         ParameterIds[TFT].Value = GetTransmissionFluidTemperature();
         ParameterIds[OP_SW_B].Value = GetTransmissionOilPressureSwitchState();
@@ -438,6 +441,14 @@ int main()
         ParameterIds[FUELSYS1].Value = GetFuelSystemStatus();
         ParameterIds[DTC_CNT].Value = GetDiagnosticTroubleCodeCount();
         ParameterIds[VPWR].Value2 = GetControlModuleVoltage();
+
+        //Fans
+        fan1 = fan2 = 0;
+
+        GetFanState(&fan1, &fan2);
+
+        ParameterIds[FAN1].Value = fan1;
+        ParameterIds[FAN2].Value = fan2;
 
         //Calculated values
         if (ParameterIds[RPM].Value && ParameterIds[TSS].Value)
@@ -498,16 +509,19 @@ int main()
 
         if ((ParameterIds[ECT].Value > tempHi
             || ParameterIds[TFT].Value > tempHi)
-            && !ParameterIds[FAN].Value)
+            && !ParameterIds[FAN1].Value)
         {
             manualFanControl = 1;
 
             if (UnlockActuation())
             {
-                if (SetFanState(1))
-                    StatusPrint("turning on FAN..");
-                else
-                    StatusPrint("failed to turn on FAN; SetFanState() failed!");
+                SetFanState(0,1);
+
+                if (ParameterIds[ECT].Value > FAN_CTRL_CRIT
+                    || ParameterIds[TFT].Value > FAN_CTRL_CRIT)
+                    {
+                        SetFanState(1,1); //turn on fan2
+                    }
             }
             else
             {
@@ -529,10 +543,13 @@ int main()
 
             if (ParameterIds[ECT].Value < tempLo
                 && ParameterIds[TFT].Value < tempLo
-                && ParameterIds[FAN].Value)
+                && ParameterIds[FAN1].Value)
             {
                 StatusPrint("turning off FAN..");
-                SetFanState(0);
+                SetFanState(0,0);
+
+                if (ParameterIds[FAN2].Value)
+                    SetFanState(1,0);
             }
         }
 

@@ -121,15 +121,23 @@ int GetEngineSpeed()
 }
 
 
-int GetFanState()
+int GetFanState( int* Fan1, int* Fan2 )
 {
-    int fans;
+    int response;
 
-	  fans = ReadDataByCommonIdentifier32(0x1103);
+    response = ReadDataByCommonIdentifier32(0x1103);
 
-    if (!fans) return 0;
+    if (!response) return 0;
 
-    return (fans >> 3) & 1;
+    //low speed (both fans)
+    if (Fan1)
+        *Fan1 = (response >> 2) & 1;
+
+    //high speed (one fan)
+    if (Fan2)
+        *Fan2 = (response >> 3) & 1;
+
+    return 1;
 }
 
 
@@ -317,24 +325,35 @@ int GetTransmissionTurbineShaftSpeed()
 }
 
 
-int SetFanState( int State )
+/*
+These conditions must be met in order to adjust these parameters else you'll get
+a negative response from the ECU.
+TR = 'N' or 'P' //Transmission Shift Lever in Neutral position
+THOP = 0.0 //Throttle fully closed
+*/
+
+/*
+0 based fan index.
+0 = FAN1; 1 = FAN2
+*/
+
+int SetFanState( int Index, int State )
 {
-    if(!InputOutputControlByCommonIdentifier(0x17C4, ShortTermAdjustment, State))
+    short id;
+
+    if (Index == 0)
+        id = 0x17C3;
+    else if (Index == 1)
+        id = 0x17C4;
+    else
         return 0;
 
-    //fan read actually turns on fan [VERIFY]
-    GetFanState();
+    if(!InputOutputControlByCommonIdentifier(id, ShortTermAdjustment, State))
+        return 0;
 
     return 1;
 }
 
-
-/*
-Conditions: These conditions must be met in order to adjust this
-parameter else you'll get a negative response.
-TR = 'N' //Transmission Shift Lever in Neutral position
-THOP = 0.0 //Throttle fully closed
-*/
 
 int SetTransmissionLinePressureSolenoidAmperage( float Amperage )
 {
