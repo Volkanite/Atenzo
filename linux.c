@@ -71,6 +71,7 @@ int Debug = 0;
 int ScreenX = 0;
 int ScreenY = 0;
 int64_t EngineStartTime;
+PID* ParameterIdsBase;
 
 #define FAN_CTRL_HI     95
 #define FAN_CTRL_LO     90
@@ -261,12 +262,21 @@ int GetPidLen( PID* ParameterId )
 }
 
 
+int IsEngineRunning()
+{
+    if (ParameterIdsBase[RPM].Value > 500)
+        return TRUE;
+    else
+        return FALSE;
+}
+
+
 int IsVoltageGood( PID* ParameterIdsBasePtr )
 {
     if (current_timestamp() - EngineStartTime < 5000)
         return 1;
 
-    if (ParameterIdsBasePtr[RPM].Value > 550
+    if (IsEngineRunning()
         && ParameterIdsBasePtr[VPWR].Value2 > 0.0
         && ParameterIdsBasePtr[VPWR].Value2 < 12.9)
         {
@@ -401,6 +411,8 @@ int main()
         {"VPWR","V",Type_Float,FALSE,0.0f,IsVoltageGood}
     };
 
+    ParameterIdsBase = ParameterIds;
+
     ScreenX = ScreenY = 0;
     currentEngineState = previousEngineState = 0;
     EngineStartTime = 0;
@@ -456,7 +468,7 @@ int main()
         else
             ParameterIds[DR].Value2 = 0.0;
 
-        currentEngineState = (ParameterIds[RPM].Value > 0) ? 1 : 0;
+        currentEngineState = IsEngineRunning();
 
         if (currentEngineState == 1 && previousEngineState == 0)
         {
@@ -509,7 +521,8 @@ int main()
 
         if ((ParameterIds[ECT].Value > tempHi
             || ParameterIds[TFT].Value > tempHi)
-            && !ParameterIds[FAN1].Value)
+            && !ParameterIds[FAN1].Value
+            && IsEngineRunning())
         {
             manualFanControl = 1;
 
