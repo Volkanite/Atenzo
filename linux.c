@@ -263,12 +263,12 @@ int GetPidLen( PID* ParameterId )
 
 int IsVoltageGood( PID* ParameterIdsBasePtr )
 {
-    if (current_timestamp() - EngineStartTime < 4000)
+    if (current_timestamp() - EngineStartTime < 5000)
         return 1;
 
     if (ParameterIdsBasePtr[RPM].Value > 550
         && ParameterIdsBasePtr[VPWR].Value2 > 0.0
-        && ParameterIdsBasePtr[VPWR].Value2 < 13.1)
+        && ParameterIdsBasePtr[VPWR].Value2 < 12.9)
         {
             return 0;
         }
