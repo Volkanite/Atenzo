@@ -203,11 +203,17 @@ long long current_timestamp()
 }
 
 
-void StatusPrint( char* Message )
+void PrintToScreen( int PosY, char* Message )
 {
-    move(ScreenY-1, 0);
+    move(PosY, 0);
     clrtoeol();
     printw("%s", Message);
+}
+
+
+void StatusPrint( char* Message )
+{
+    PrintToScreen(ScreenY-1, Message);
 }
 
 
@@ -376,7 +382,7 @@ int main()
     GetCommandResponse("ATS0\r", 0,0); //Turn off spaces on OBD responses
     GetCommandResponse("STCSEGR1\r", 0,0); //Disable PCI bytes
 
-    int max_x, max_y;
+    int max_x, max_y, voltage_y;
     int currentEngineState, previousEngineState;
     int virtualColumns;
     int fullPressure;
@@ -426,6 +432,8 @@ int main()
 
     initscr(); //init ncurses
     getyx(stdscr, ScreenY, ScreenX); //backup cursor position
+
+    voltage_y = ScreenY; //backup voltage pos
     ScreenY += 2; //two lines from last echo
     ScreenX = 0; //first column
 
@@ -680,6 +688,12 @@ int main()
             PlaySound();
         }
 
+        //Print voltage
+        GetCommandResponse("ATRV\r", buffer, 100);
+        removeCharFromStr(buffer, '>');
+        PrintToScreen(voltage_y-2, buffer);
+
+        //Print PIDs
         move(ScreenY, ScreenX); //restore cursor pos
         clrtobot(); //clear line
         refresh();
