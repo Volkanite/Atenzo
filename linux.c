@@ -284,7 +284,7 @@ int IsVoltageGood( PID* ParameterIdsBasePtr )
 
     if (IsEngineRunning()
         && ParameterIdsBasePtr[VPWR].Value2 > 0.0
-        && ParameterIdsBasePtr[VPWR].Value2 < 12.9)
+        && ParameterIdsBasePtr[VPWR].Value2 < 12.8)
         {
             return 0;
         }
