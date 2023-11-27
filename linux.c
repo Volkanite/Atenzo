@@ -7,6 +7,7 @@
 #include <termios.h>
 #include <curses.h>
 #include <sys/time.h>
+#include <time.h>
 
 #include "atenza.h"
 #include "sound.h"
@@ -66,7 +67,8 @@ typedef enum _PID_INDEX
 #define TRUE 1
 #define FALSE 0
 
-int fd = 0;
+int Device = 0;
+int LogFile = 0;
 int Debug = 0;
 int ScreenX = 0;
 int ScreenY = 0;
@@ -79,24 +81,52 @@ PID* ParameterIdsBase;
 
 
 char * removeCharFromStr(char *string, char character);
-//char * removeSpacesFromStr(char *string);
+void GetClockTime( char* Buffer, struct tm* Time );
 
-void Send( char* Command )
+
+void Send( char* Command, int Len )
 {
-    write(fd, Command, strlen(Command));
+    write(Device, Command, Len ? Len : strlen(Command));
 }
 
 
-void GetCommandResponse( char* Command, char* buff, int BufferLength)
+void LogToFile( char* Format, ... )
 {
-    Send(Command);
-    //read(fd, buffer, 100);
+    char output[121], buffer[100], time[20];
+    va_list args;
+    int result;
+
+    va_start(args, Format);
+    vsnprintf(buffer, 100, Format, args);
+    va_end(args);
+
+    GetClockTime(time, NULL);
+
+    strcpy(output, time);
+    strcat(output, " ");
+    strcat(output, buffer);
+    strcat(output, "\n");
+
+    write(LogFile, output, strlen(output));
+}
+
+
+void GetCommandResponse( char* Command, char* Buffer, int BufferLength)
+{
+    int cmdLen;
+
+    cmdLen = strlen(Command);
+
+    if (Debug)
+        LogToFile("=> %s", Command);
+
+    Send(Command, cmdLen);
 
     int n=0, ntot=0;
     const int maxLineLength = 1024, max_ntot = 20480;
     char str[maxLineLength + 1], *readpt=str;
      do {
-        n = read(fd, readpt, maxLineLength);
+        n = read(Device, readpt, maxLineLength);
         if (n > 0)
         {
             ntot += n;
@@ -106,12 +136,14 @@ void GetCommandResponse( char* Command, char* buff, int BufferLength)
         }
     } while ((n > 0) && (*(readpt-1)!='>') && (ntot<max_ntot) );
 
-   // printf("%s\n", readpt);
-   if (buff)
+   if (Buffer)
    {
       //ncurses doesn't like the CRs
       removeCharFromStr(str, '\r');
-      strncpy(buff, str, BufferLength);
+      strncpy(Buffer, str, BufferLength);
+
+      if (Debug)
+        LogToFile("<= %s", Buffer);
    }
 }
 
@@ -185,6 +217,26 @@ char * removeCharFromStr( char *string, char character )
     //Finally placing final character at the string end
     string[non_space_count] = '\0';
     return string;
+}
+
+
+void GetClockTime( char* Buffer, struct tm* Time )
+{
+    struct timeval tv;
+    struct timezone tz;
+    struct tm *today;
+    int zone;
+
+    gettimeofday(&tv,&tz);
+
+    /* get time details */
+    today = localtime(&tv.tv_sec);
+
+    if (Buffer)
+        snprintf(Buffer, 20, "%d:%02d:%02d.%06ld", today->tm_hour, today->tm_min, today->tm_sec, tv.tv_usec);
+
+    if (Time)
+        *Time = *today;
 }
 
 
@@ -295,9 +347,9 @@ int IsVoltageGood( PID* ParameterIdsBasePtr )
 
 int main()
 {
-    fd = open("/dev/ttyUSB0", O_RDWR);
+    Device = open("/dev/ttyUSB0", O_RDWR);
 
-    if (fd == -1)
+    if (Device == -1)
     {
         printf("Could not open ttyUSB0: %s\n", strerror(errno));
 
@@ -317,7 +369,7 @@ int main()
     struct termios tty;
 
     // Read in existing settings, and handle any error
-    if(tcgetattr(fd, &tty) != 0) {
+    if(tcgetattr(Device, &tty) != 0) {
         printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
         return 1;
     }
@@ -351,17 +403,23 @@ int main()
     cfsetospeed(&tty, B115200);
 
     // Save tty settings, also checking for error
-    if (tcsetattr(fd, TCSANOW, &tty) != 0) {
+    if (tcsetattr(Device, TCSANOW, &tty) != 0) {
         printf("Error %i from tcsetattr: %s\n", errno, strerror(errno));
         return 1;
+    }
+
+    if (Debug)
+    {
+        LogFile = open("./debug.log", O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
     }
 
     initscr();
     InitializeSound();
 
     // Reboot device to flush any bad settings
-    Send("ATWS\r"); //soft reset
+    Send("ATWS\r",0); //soft reset
     //Send("ATZ\r"); //hard reset
+
     sleep(1);
 
     Echo("ATL1\r"); // turn on line feed
@@ -481,10 +539,25 @@ int main()
         if (currentEngineState == 1 && previousEngineState == 0)
         {
             //Code in this block runs once every engine restart
+            struct tm today;
+            char buffer[100];
+            int newline;
 
             manualFanControl = 0;
             start = delta = timeout = timeoutValue = 0;
             EngineStartTime = current_timestamp();
+
+            if (Debug)
+            {
+                GetClockTime(NULL, &today);
+                sprintf(buffer, "%s", asctime(&today));
+
+                //remove newline char
+                newline = strlen(buffer);
+                buffer[newline-1] = '\0';
+
+                LogToFile("[Engine Start] @ %s", buffer);
+            }
         }
 
         previousEngineState = currentEngineState;
@@ -765,5 +838,9 @@ int main()
     }
 
     TerminateSound();
+
+    if (Debug)
+        close(LogFile);
+
     return 0;
 }
