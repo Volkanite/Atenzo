@@ -347,6 +347,19 @@ int IsVoltageGood( PID* ParameterIdsBasePtr )
 
 int main()
 {
+    int max_x, max_y, voltage_y;
+    int currentEngineState, previousEngineState;
+    int virtualColumns;
+    int fullPressure;
+    int releasePressure;
+    int awaitingFullPressure;
+    char buffer[100];
+    long long start, delta;
+    int timeout, timeoutValue;
+    int manualFanControl, tempHi, tempLo, fan1, fan2;
+    int prev_dtc_count;
+    SOUND_FILE beep, ding;
+
     Device = open("/dev/ttyUSB0", O_RDWR);
 
     if (Device == -1)
@@ -414,7 +427,9 @@ int main()
     }
 
     initscr();
-    InitializeSound();
+
+    InitializeSound("./beep.wav", &beep);
+    InitializeSound("./ding.wav", &ding);
 
     // Reboot device to flush any bad settings
     Send("ATWS\r",0); //soft reset
@@ -439,18 +454,6 @@ int main()
     GetCommandResponse("ATE0\r", 0,0); //Echo off
     GetCommandResponse("ATS0\r", 0,0); //Turn off spaces on OBD responses
     GetCommandResponse("STCSEGR1\r", 0,0); //Disable PCI bytes
-
-    int max_x, max_y, voltage_y;
-    int currentEngineState, previousEngineState;
-    int virtualColumns;
-    int fullPressure;
-    int releasePressure;
-    int awaitingFullPressure;
-    char buffer[100];
-    long long start, delta;
-    int timeout, timeoutValue;
-    int manualFanControl, tempHi, tempLo, fan1, fan2;
-    int prev_dtc_count;
 
     PID ParameterIds[] = {
         {"ECT","°C",Type_Int,1,100.0f},
@@ -593,7 +596,7 @@ int main()
                 {
                     StatusPrint("Clearing DTCs..");
                     ClearDiagnosticTroubleCodes();
-                    PlaySound();
+                    PlaySound(&beep);
                 }
             }
         }
@@ -659,7 +662,7 @@ int main()
             float time;
 
             StatusPrint("Release throttle to commit LPS..");
-            PlaySound();
+            PlaySound(&beep);
 
             awaitingFullPressure = 1;
             temp = ParameterIds[TFT].Value;
@@ -704,7 +707,7 @@ int main()
             }
 
             StatusPrint(buffer);
-            PlaySound();
+            PlaySound(&beep);
 
             fullPressure = 1;
             awaitingFullPressure = 0;
@@ -758,7 +761,7 @@ int main()
                 start = delta = timeout = timeoutValue = 0;
 
             StatusPrint("Returning LPS control to ECU..");
-            PlaySound();
+            PlaySound(&beep);
         }
 
         //Print voltage
@@ -811,7 +814,7 @@ int main()
                     init_pair(1, COLOR_RED, COLOR_BLACK);
                     attron(COLOR_PAIR(1));
 
-                    PlaySound();
+                    PlaySound(&beep);
                 }
             }
 

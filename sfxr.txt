@@ -1,0 +1,2 @@
+beep.wav (Blip/select) - https://sfxr.me/#34T6PkzepTWTNPpAXC2i9QgkuCqhmFRHb15F39DMYpNeTJujp4BRrZEMVg2MTW6b4WTaB8usGrTqUyN4VHVJ7dy5ctGaLk78YSSHN6JbTXU9AfhKWzDvHW6mm
+ding.wav (Pickup/coin) - https://sfxr.me/#34T6Pm2iTN3b3gZNDFrDpdSt7GtseWymg1tzNMaxig26bxEuBaEAKJJsY4SFXzEu8oB8bke9GqLkZ2GAXVD5K5RLTSHkhV4CPbA1V9d3WyGe1osiSDu8nriBZ
