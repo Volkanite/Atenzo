@@ -67,6 +67,9 @@ typedef enum _PID_INDEX
 #define TRUE 1
 #define FALSE 0
 
+#define MAX(a,b) ((a) > (b) ? a : b)
+#define MIN(a,b) ((a) < (b) ? a : b)
+
 int Device = 0;
 int LogFile = 0;
 int Debug = 0;
@@ -356,7 +359,7 @@ int main()
     char buffer[100];
     long long start, delta;
     int timeout, timeoutValue;
-    int manualFanControl, tempHi, tempLo, fan1, fan2;
+    int manualFanControl, temp, tempHi, tempLo, fan1, fan2;
     int prev_dtc_count;
     SOUND_FILE beep, ding;
     int pinged;
@@ -604,29 +607,39 @@ int main()
 
         prev_dtc_count = ParameterIds[DTC_CNT].Value;
 
-        if ((ParameterIds[ECT].Value > tempHi
-            || ParameterIds[TFT].Value > tempHi)
-            && !ParameterIds[FAN1].Value
-            && IsEngineRunning())
+        temp = MAX(ParameterIds[ECT].Value, ParameterIds[TFT].Value);
+
+        if (temp > tempHi && !fan1 && IsEngineRunning())
         {
             manualFanControl = 1;
 
             if (UnlockActuation())
             {
+                StatusPrint("turning on FAN1..");
                 SetFanState(0,1);
-
-                if (ParameterIds[ECT].Value > FAN_CTRL_CRIT
-                    || ParameterIds[TFT].Value > FAN_CTRL_CRIT)
-                    {
-                        SetFanState(1,1); //turn on fan2
-                    }
             }
             else
             {
                 StatusPrint("UnlockActuation() failed! Fan setting failed!");
             }
         }
-        else if (manualFanControl)
+
+        if (temp > FAN_CTRL_CRIT && !fan2 && IsEngineRunning())
+        {
+            manualFanControl = 1;
+
+            if (UnlockActuation())
+            {
+                StatusPrint("turning on FAN2..");
+                SetFanState(1,1);
+            }
+            else
+            {
+                StatusPrint("UnlockActuation() failed! Fan setting failed!");
+            }
+        }
+
+        if (manualFanControl)
         {
             if (ParameterIds[TR].Value == 'P')
             {
@@ -639,14 +652,12 @@ int main()
                 tempLo = FAN_CTRL_LO;
             }
 
-            if (ParameterIds[ECT].Value < tempLo
-                && ParameterIds[TFT].Value < tempLo
-                && ParameterIds[FAN1].Value)
+            if (temp < tempLo && fan1)
             {
                 StatusPrint("turning off FAN..");
                 SetFanState(0,0);
 
-                if (ParameterIds[FAN2].Value)
+                if (fan2)
                     SetFanState(1,0);
             }
         }
