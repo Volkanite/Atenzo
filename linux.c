@@ -359,6 +359,7 @@ int main()
     int manualFanControl, tempHi, tempLo, fan1, fan2;
     int prev_dtc_count;
     SOUND_FILE beep, ding;
+    int pinged;
 
     Device = open("/dev/ttyUSB0", O_RDWR);
 
@@ -479,7 +480,6 @@ int main()
     };
 
     ParameterIdsBase = ParameterIds;
-
     ScreenX = ScreenY = 0;
     currentEngineState = previousEngineState = 0;
     EngineStartTime = 0;
@@ -487,6 +487,7 @@ int main()
     start = delta = timeout = timeoutValue = 0;
     manualFanControl = 0;
     prev_dtc_count = 0;
+    pinged = FALSE;
 
     tempHi = FAN_CTRL_HI;
     tempLo = FAN_CTRL_LO;
@@ -711,6 +712,7 @@ int main()
 
             fullPressure = 1;
             awaitingFullPressure = 0;
+            pinged = FALSE;
 
             UnlockActuation();
             SetTransmissionLinePressureSolenoidAmperage(0.0);
@@ -747,6 +749,12 @@ int main()
                 {
                     timeout = 1;
                 }
+            }
+
+            if (!pinged && ParameterIds[DR].Value2 == 0.0)
+            {
+                PlaySound(&ding);
+                pinged = TRUE;
             }
         }
 
