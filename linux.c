@@ -348,7 +348,35 @@ int IsVoltageGood( PID* ParameterIdsBasePtr )
 }
 
 
-int main()
+void InitializeDevice()
+{
+    // Reboot device to flush any bad settings
+    Send("ATWS\r",0); //soft reset
+    //Send("ATZ\r"); //hard reset
+
+    sleep(1);
+
+    Echo("ATL1\r"); // turn on line feed
+    Echo("ATE1\r");//Echo on
+
+    Echo("ATI\r"); //identify
+    Echo("STI\r"); //Print firmware ID string
+    Echo("STDI\r"); //Print device hardware ID string
+    Echo("ATDP\r"); //describe current protocol
+    Echo("ATRV\r"); //read voltage
+
+    //Set current protocol preset to ISO 15765, 11-bit Tx, 500kbps, DLC=8; High Speed CAN (HS-CAN)
+    GetCommandResponse("STP33\r", 0,0);
+
+    GetCommandResponse("ATSH7E0\r", 0,0); // set the header of transmitted OBD messages
+    GetCommandResponse("ATL0\r", 0,0); // turn off line feed
+    GetCommandResponse("ATE0\r", 0,0); //Echo off
+    GetCommandResponse("ATS0\r", 0,0); //Turn off spaces on OBD responses
+    GetCommandResponse("STCSEGR1\r", 0,0); //Disable PCI bytes
+}
+
+
+int main( int argc, char *argv[] )
 {
     int max_x, max_y, voltage_y;
     int currentEngineState, previousEngineState;
@@ -363,6 +391,18 @@ int main()
     int prev_dtc_count;
     SOUND_FILE beep, ding;
     int pinged;
+    int option;
+    int clearDTCs;
+
+    clearDTCs = 0;
+
+    option = getopt(argc, argv, "c");
+
+    if (option != -1)
+    {
+        if (option == 'c')
+            clearDTCs = 1;
+    }
 
     Device = open("/dev/ttyUSB0", O_RDWR);
 
@@ -430,34 +470,19 @@ int main()
         LogFile = open("./debug.log", O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
     }
 
-    initscr();
+    if (clearDTCs)
+    {
+        printf("Clearing DTCs..\n");
+        InitializeDevice();
+        ClearDiagnosticTroubleCodes();
+        return 0;
+    }
+
+    initscr(); //init ncurses
+    InitializeDevice();
 
     InitializeSound("./beep.wav", &beep);
     InitializeSound("./ding.wav", &ding);
-
-    // Reboot device to flush any bad settings
-    Send("ATWS\r",0); //soft reset
-    //Send("ATZ\r"); //hard reset
-
-    sleep(1);
-
-    Echo("ATL1\r"); // turn on line feed
-    Echo("ATE1\r");//Echo on
-
-    Echo("ATI\r"); //identify
-    Echo("STI\r"); //Print firmware ID string
-    Echo("STDI\r"); //Print device hardware ID string
-    Echo("ATDP\r"); //describe current protocol
-    Echo("ATRV\r"); //read voltage
-
-    //Set current protocol preset to ISO 15765, 11-bit Tx, 500kbps, DLC=8; High Speed CAN (HS-CAN)
-    GetCommandResponse("STP33\r", 0,0);
-
-    GetCommandResponse("ATSH7E0\r", 0,0); // set the header of transmitted OBD messages
-    GetCommandResponse("ATL0\r", 0,0); // turn off line feed
-    GetCommandResponse("ATE0\r", 0,0); //Echo off
-    GetCommandResponse("ATS0\r", 0,0); //Turn off spaces on OBD responses
-    GetCommandResponse("STCSEGR1\r", 0,0); //Disable PCI bytes
 
     PID ParameterIds[] = {
         {"ECT","°C",Type_Int,1,100.0f},
@@ -495,7 +520,6 @@ int main()
     tempHi = FAN_CTRL_HI;
     tempLo = FAN_CTRL_LO;
 
-    initscr(); //init ncurses
     getyx(stdscr, ScreenY, ScreenX); //backup cursor position
 
     voltage_y = ScreenY; //backup voltage pos
