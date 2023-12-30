@@ -75,6 +75,7 @@ int LogFile = 0;
 int Debug = 0;
 int ScreenX = 0;
 int ScreenY = 0;
+int CAN_Errors = 0;
 int64_t EngineStartTime;
 PID* ParameterIdsBase;
 
@@ -127,7 +128,9 @@ void GetCommandResponse( char* Command, char* Buffer, int BufferLength)
 
     int n=0, ntot=0;
     const int maxLineLength = 1024, max_ntot = 20480;
-    char str[maxLineLength + 1], *readpt=str;
+    char response[maxLineLength + 1];
+    char *readpt = response;
+
      do {
         n = read(Device, readpt, maxLineLength);
         if (n > 0)
@@ -139,11 +142,14 @@ void GetCommandResponse( char* Command, char* Buffer, int BufferLength)
         }
     } while ((n > 0) && (*(readpt-1)!='>') && (ntot<max_ntot) );
 
+    if(strncmp(response, "CAN ERROR", 9) == 0)
+        CAN_Errors++;
+
    if (Buffer)
    {
       //ncurses doesn't like the CRs
-      removeCharFromStr(str, '\r');
-      strncpy(Buffer, str, BufferLength);
+      removeCharFromStr(response, '\r');
+      strncpy(Buffer, response, BufferLength);
 
       if (Debug)
         LogToFile("<= %s", Buffer);
@@ -266,9 +272,18 @@ void PrintToScreen( int PosY, char* Message )
 }
 
 
-void StatusPrint( char* Message )
+void StatusPrint( char* Format, ... )
 {
-    PrintToScreen(ScreenY-1, Message);
+    char output[121], buffer[100];
+    va_list args;
+    int result;
+
+    va_start(args, Format);
+    vsnprintf(buffer, 100, Format, args);
+    va_end(args);
+
+    strcpy(output, buffer);
+    PrintToScreen(ScreenY-1, output);
 }
 
 
@@ -393,6 +408,7 @@ int main( int argc, char *argv[] )
     int pinged;
     int option;
     int clearDTCs;
+    float voltage;
 
     clearDTCs = 0;
 
@@ -577,6 +593,7 @@ int main( int argc, char *argv[] )
             manualFanControl = 0;
             start = delta = timeout = timeoutValue = 0;
             EngineStartTime = current_timestamp();
+            CAN_Errors = 0;
 
             if (Debug)
             {
@@ -811,6 +828,15 @@ int main( int argc, char *argv[] )
         GetCommandResponse("ATRV\r", buffer, 100);
         removeCharFromStr(buffer, '>');
         PrintToScreen(voltage_y-2, buffer);
+
+        voltage = strtof(buffer, NULL);
+
+        //Handle CAN errors
+        if (CAN_Errors > 490 && voltage > 13.0)
+        {
+            StatusPrint("[CAN ERRORS] = %i", CAN_Errors);
+            PlaySound(&beep);
+        }
 
         //Print PIDs
         move(ScreenY, ScreenX); //restore cursor pos
