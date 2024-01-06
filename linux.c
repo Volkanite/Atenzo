@@ -650,33 +650,42 @@ int main( int argc, char *argv[] )
 
         temp = MAX(ParameterIds[ECT].Value, ParameterIds[TFT].Value);
 
-        if (temp > tempHi && !fan1 && IsEngineRunning())
+        //actuation control only works when TR is in 'P' or 'N' (not in gear), hence we check for that below.
+        //TODO: Add PID 'InGear'. This PID should show whether the transmission is in gear or not.
+        //Question: Can the service "WriteMemoryByAddress" (0x3D) be used to change the code in the ECU at runtime
+        //to bypass this 'in-gear' check?
+        if ((ParameterIds[TR].Value == 'P' || ParameterIds[TR].Value == 'N') && IsEngineRunning())
         {
-            manualFanControl = 1;
+            if (temp > tempHi && !fan1)
+            {
+                manualFanControl = 1;
 
-            if (UnlockActuation())
-            {
-                StatusPrint("turning on FAN1..");
-                SetFanState(0,1);
-            }
-            else
-            {
-                StatusPrint("UnlockActuation() failed! Fan setting failed!");
-            }
-        }
+                if (UnlockActuation())
+                {
+                    StatusPrint("turning on FAN1..");
 
-        if (temp > FAN_CTRL_CRIT && !fan2 && IsEngineRunning())
-        {
-            manualFanControl = 1;
-
-            if (UnlockActuation())
-            {
-                StatusPrint("turning on FAN2..");
-                SetFanState(1,1);
+                    if (SetFanState(0,1))
+                        PlaySound(&ding);
+                }
+                else
+                {
+                    StatusPrint("UnlockActuation() failed! Fan setting failed!");
+                }
             }
-            else
+
+            if (temp > FAN_CTRL_CRIT && !fan2)
             {
-                StatusPrint("UnlockActuation() failed! Fan setting failed!");
+                manualFanControl = 1;
+
+                if (UnlockActuation())
+                {
+                    StatusPrint("turning on FAN2..");
+                    SetFanState(1,1);
+                }
+                else
+                {
+                    StatusPrint("UnlockActuation() failed! Fan setting failed!");
+                }
             }
         }
 
