@@ -412,12 +412,26 @@ int main( int argc, char *argv[] )
 
     clearDTCs = 0;
 
-    option = getopt(argc, argv, "c");
+    /*option = getopt(argc, argv, "c");
 
     if (option != -1)
     {
         if (option == 'c')
             clearDTCs = 1;
+    }*/
+
+    while((option = getopt(argc, argv, "cd")) != -1)
+    {
+        switch (option)
+        {
+            case 'c':
+                clearDTCs = 1;
+                break;
+
+            case 'd':
+                Debug = 1;
+                break;
+        }
     }
 
     Device = open("/dev/ttyUSB0", O_RDWR);
