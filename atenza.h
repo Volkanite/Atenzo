@@ -5,6 +5,7 @@ int ClearDiagnosticTroubleCodes();
 int GetDiagnosticTroubleCodes(unsigned short* ArrayOfDTCs);
 
 /* Data Transmission */
+float GetAlternatorOutputVoltage();
 int GetBrakeSwitchState();
 float GetControlModuleVoltage();
 int GetDiagnosticTroubleCodeCount();

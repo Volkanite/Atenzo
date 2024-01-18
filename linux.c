@@ -60,7 +60,8 @@ typedef enum _PID_INDEX
     FUELSYS1,
     DTC_CNT,
     GEAR,
-    VPWR
+    VPWR,
+    ALTT_V
 
 } PID_INDEX;
 
@@ -534,7 +535,8 @@ int main( int argc, char *argv[] )
         {"FSS", 0,3},
         {"DTCs",0,Type_Int,1,1.0f},
         {"GR"},
-        {"VPWR","V",Type_Float,FALSE,0.0f,IsVoltageGood}
+        {"VPWR","V",Type_Float,FALSE,0.0f,IsVoltageGood},
+        {"ALTV","V",Type_Float}
     };
 
     ParameterIdsBase = ParameterIds;
@@ -563,7 +565,6 @@ int main( int argc, char *argv[] )
     while (1)
     {
         ParameterIds[BOO].Value = GetBrakeSwitchState();
-        //ParameterIds[FAN].Value = GetFanState();
         ParameterIds[ECT].Value = GetEngineCoolantTemperature();
         ParameterIds[TFT].Value = GetTransmissionFluidTemperature();
         ParameterIds[OP_SW_B].Value = GetTransmissionOilPressureSwitchState();
@@ -580,6 +581,7 @@ int main( int argc, char *argv[] )
         ParameterIds[FUELSYS1].Value = GetFuelSystemStatus();
         ParameterIds[DTC_CNT].Value = GetDiagnosticTroubleCodeCount();
         ParameterIds[VPWR].Value2 = GetControlModuleVoltage();
+        ParameterIds[ALTT_V].Value2 = GetAlternatorOutputVoltage();
 
         //Fans
         fan1 = fan2 = 0;

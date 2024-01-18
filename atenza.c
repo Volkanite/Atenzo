@@ -64,6 +64,22 @@ int AuthenticateSession()
 }
 
 
+float GetAlternatorOutputVoltage()
+{
+    int response;
+    float voltage;
+
+    response = ReadDataByCommonIdentifier64(0x16E9);
+
+    if (!response)
+        return 0.0f;
+
+    voltage = (float)response;
+
+    return voltage / 8.0f;
+}
+
+
 int GetBrakeSwitchState()
 {
     int state;
