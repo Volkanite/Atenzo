@@ -931,7 +931,7 @@ int main( int argc, char *argv[] )
         }
 
         refresh();
-        usleep(500000);
+        usleep(250000);
     }
 
     TerminateSound();
