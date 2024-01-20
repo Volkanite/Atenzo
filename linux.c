@@ -533,7 +533,7 @@ int main( int argc, char *argv[] )
         {"STFT",0,Type_Float},
         {"MAF","g/s",Type_Float},
         {"FSS", 0,3},
-        {"DTCs",0,Type_Int,1,1.0f},
+        {"DTCs",0,Type_Int,TRUE,0.5f},
         {"GR"},
         {"VPWR","V",Type_Float,FALSE,0.0f,IsVoltageGood},
         {"ALTV","V",Type_Float}
