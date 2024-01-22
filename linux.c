@@ -364,6 +364,20 @@ int IsVoltageGood( PID* ParameterIdsBasePtr )
 }
 
 
+int IsAlternatorVoltageGood( PID* ParameterIdsBasePtr )
+{
+    if (current_timestamp() - EngineStartTime < 5000)
+        return 1;
+
+    if (IsEngineRunning() && ParameterIdsBasePtr[ALTT_V].Value2 < 13.2)
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
+
 void InitializeDevice()
 {
     // Reboot device to flush any bad settings
@@ -536,7 +550,7 @@ int main( int argc, char *argv[] )
         {"DTCs",0,Type_Int,TRUE,0.5f},
         {"GR"},
         {"VPWR","V",Type_Float,FALSE,0.0f,IsVoltageGood},
-        {"ALTV","V",Type_Float}
+        {"ALTV","V",Type_Float,FALSE,0.0f,IsAlternatorVoltageGood}
     };
 
     ParameterIdsBase = ParameterIds;
