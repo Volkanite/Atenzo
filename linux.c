@@ -355,7 +355,7 @@ int IsVoltageGood( PID* ParameterIdsBasePtr )
 
     if (IsEngineRunning()
         && ParameterIdsBasePtr[VPWR].Value2 > 0.0
-        && ParameterIdsBasePtr[VPWR].Value2 < 12.4)
+        && ParameterIdsBasePtr[VPWR].Value2 < 12.5)
         {
             return 0;
         }
@@ -369,7 +369,7 @@ int IsAlternatorVoltageGood( PID* ParameterIdsBasePtr )
     if (current_timestamp() - EngineStartTime < 5000)
         return 1;
 
-    if (IsEngineRunning() && ParameterIdsBasePtr[ALTT_V].Value2 < 13.2)
+    if (IsEngineRunning() && ParameterIdsBasePtr[ALTT_V].Value2 < 13.3)
     {
         return 0;
     }
