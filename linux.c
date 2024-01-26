@@ -84,6 +84,8 @@ PID* ParameterIdsBase;
 #define FAN_CTRL_LO     90
 #define FAN_CTRL_CRIT   100
 
+#define CAN_ERROR_LIMIT 741
+
 
 char * removeCharFromStr(char *string, char character);
 void GetClockTime( char* Buffer, struct tm* Time );
@@ -871,7 +873,7 @@ int main( int argc, char *argv[] )
         voltage = strtof(buffer, NULL);
 
         //Handle CAN errors
-        if (CAN_Errors > 490 && voltage > 13.0)
+        if (CAN_Errors > CAN_ERROR_LIMIT && voltage > 13.0)
         {
             StatusPrint("[CAN ERRORS] = %i", CAN_Errors);
             PlaySound(&beep);
