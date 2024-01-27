@@ -13,21 +13,42 @@ snd_pcm_t *pcm_handle;
 snd_pcm_uframes_t frames;
 
 
-void InitializeSound( char* FileName, SOUND_FILE* SoundFile )
+unsigned int GetNumSoundCards()
 {
-	SoundFile->Handle = open(FileName, O_RDONLY);
+	unsigned int totalCards;
+	int cardIndex;
 
-	if (SoundFile->Handle == 0)
+	totalCards = 0;
+	cardIndex = -1;
+
+	for (;;)
 	{
-		printf("Could not open source file\n");
+		if (snd_card_next(&cardIndex) < 0)
+			break;
+
+		if (cardIndex < 0)
+			break;
+
+		totalCards++;
 	}
 
-	unsigned int pcm, dir;
-	int rate, channels;
+	snd_config_update_free_global();
+
+	return totalCards;
+}
+
+
+void InitializeSoundDevice()
+{
 	snd_pcm_hw_params_t *params;
+	int rate, channels;
 
 	rate 	 = 44100;
 	channels = 1;
+	pcm_handle = 0;
+
+	if(GetNumSoundCards() == 0)
+		return;
 
 	/* Open the PCM device in playback mode */
 	snd_pcm_open(&pcm_handle, PCM_DEVICE, SND_PCM_STREAM_PLAYBACK, 0);
@@ -52,6 +73,21 @@ void InitializeSound( char* FileName, SOUND_FILE* SoundFile )
 	snd_pcm_hw_params_get_period_time(params, &s_tmp, NULL);
 
 	buff_size = frames * channels * 2 /* 2 -> sample size */;
+}
+
+
+void InitializeSound( char* FileName, SOUND_FILE* SoundFile )
+{
+	SoundFile->Handle = open(FileName, O_RDONLY);
+
+	if (SoundFile->Handle == 0)
+	{
+		printf("Could not open source file\n");
+	}
+
+	//unsigned int pcm, dir;
+
+	//InitializeSoundDevice();
 
 	SoundFile->Size = lseek(SoundFile->Handle, 0, SEEK_END);
 	SoundFile->Buffer = (char *) malloc(SoundFile->Size);
@@ -89,7 +125,7 @@ int PlaySoundFromFile( SOUND_FILE* SoundFile )
 	int bufferSize;
 
 	lseek(SoundFile->Handle, 0, SEEK_SET);
-	snd_pcm_prepare(pcm_handle); //reset sound card buffer
+	//snd_pcm_prepare(pcm_handle); //reset sound card buffer
 
 	bufferSize = buff_size;
 
@@ -145,6 +181,14 @@ int PlaySoundFromBuffer( SOUND_FILE* SoundFile )
 
 int PlaySound( SOUND_FILE* SoundFile )
 {
+	//Check if sound card was unplugged and re-initialize
+	if (pcm_handle == 0 || snd_pcm_state(pcm_handle) == SND_PCM_STATE_DISCONNECTED)
+	{
+		InitializeSoundDevice();
+	}
+
+	snd_pcm_prepare(pcm_handle); //reset sound card buffer
 	PlaySoundFromFile(SoundFile);
+
 	return 0;
 }

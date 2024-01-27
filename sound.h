@@ -5,6 +5,7 @@ typedef struct _SOUND_FILE
 	char* Buffer;
 }SOUND_FILE;
 
+void InitializeSoundDevice();
 void InitializeSound(char* FileName, SOUND_FILE* SoundFile);
 void TerminateSound();
 int PlaySound(SOUND_FILE* SoundFile);

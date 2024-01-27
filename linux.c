@@ -528,6 +528,8 @@ int main( int argc, char *argv[] )
     initscr(); //init ncurses
     InitializeDevice();
 
+    InitializeSoundDevice();
+    
     InitializeSound("./beep.wav", &beep);
     InitializeSound("./ding.wav", &ding);
 
