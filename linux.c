@@ -801,7 +801,6 @@ int main( int argc, char *argv[] )
             }
 
             StatusPrint(buffer);
-            PlaySound(&beep);
 
             fullPressure = 1;
             awaitingFullPressure = 0;
@@ -809,13 +808,7 @@ int main( int argc, char *argv[] )
 
             UnlockActuation();
             SetTransmissionLinePressureSolenoidAmperage(0.0);
-
-            /*long long response = GetCommandResponseAsLongLong("2F17C20700\r");
-            char responseByte = (response & 0xff00000000) >> 32;
-
-            move(y-1, 0);
-            clrtoeol();
-            printw("LPS: 0x%X", responseByte);*/
+            PlaySound(&ding);
         }
 
         if (fullPressure && ParameterIds[TR].Value == 'D')
