@@ -368,13 +368,19 @@ int IsVoltageGood( PID* ParameterIdsBasePtr )
 
 int IsAlternatorVoltageGood( PID* ParameterIdsBasePtr )
 {
-    if (current_timestamp() - EngineStartTime < 5000)
+    static int64_t lastGoodVoltageTime = 0;
+    int64_t currentTime;
+
+    currentTime = current_timestamp();
+
+    if (currentTime - EngineStartTime < 10000)
         return 1;
 
-    if (IsEngineRunning() && ParameterIdsBasePtr[ALTT_V].Value2 < 13.3)
-    {
+    if (ParameterIdsBasePtr[ALTT_V].Value2 > 13.2)
+        lastGoodVoltageTime = currentTime;
+
+    if (currentTime - lastGoodVoltageTime > 1000 && IsEngineRunning())
         return 0;
-    }
 
     return 1;
 }
@@ -529,7 +535,7 @@ int main( int argc, char *argv[] )
     InitializeDevice();
 
     InitializeSoundDevice();
-    
+
     InitializeSound("./beep.wav", &beep);
     InitializeSound("./ding.wav", &ding);
 
