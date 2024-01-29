@@ -84,7 +84,7 @@ PID* ParameterIdsBase;
 #define FAN_CTRL_LO     90
 #define FAN_CTRL_CRIT   100
 
-#define CAN_ERROR_LIMIT 741
+#define CAN_ERROR_LIMIT 888
 
 
 char * removeCharFromStr(char *string, char character);
