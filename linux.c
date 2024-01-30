@@ -373,13 +373,13 @@ int IsAlternatorVoltageGood( PID* ParameterIdsBasePtr )
 
     currentTime = current_timestamp();
 
-    if (currentTime - EngineStartTime < 10000)
+    if (currentTime - EngineStartTime < 30000)
         return 1;
 
-    if (ParameterIdsBasePtr[ALTT_V].Value2 > 13.2)
+    if (ParameterIdsBasePtr[ALTT_V].Value2 > 13.0)
         lastGoodVoltageTime = currentTime;
 
-    if (currentTime - lastGoodVoltageTime > 1000 && IsEngineRunning())
+    if (currentTime - lastGoodVoltageTime > 2000 && IsEngineRunning())
         return 0;
 
     return 1;
