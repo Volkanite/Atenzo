@@ -352,7 +352,7 @@ int IsEngineRunning()
 
 int IsVoltageGood( PID* ParameterIdsBasePtr )
 {
-    if (current_timestamp() - EngineStartTime < 5000)
+    if (current_timestamp() - EngineStartTime < 10000)
         return 1;
 
     if (IsEngineRunning()
