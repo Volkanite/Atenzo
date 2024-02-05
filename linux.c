@@ -682,6 +682,9 @@ int main( int argc, char *argv[] )
                     StatusPrint("Clearing DTCs..");
                     ClearDiagnosticTroubleCodes();
                     PlaySound(&beep);
+
+                    //force set DTC_CNT to 0 and avoid alarm lower down in PID checks
+                    ParameterIds[DTC_CNT].Value = 0;
                 }
             }
         }
