@@ -77,6 +77,7 @@ int Debug = 0;
 int ScreenX = 0;
 int ScreenY = 0;
 int CAN_Errors = 0;
+unsigned char DeviceErrors;
 int64_t EngineStartTime;
 PID* ParameterIdsBase;
 
@@ -93,7 +94,8 @@ void GetClockTime( char* Buffer, struct tm* Time );
 
 void Send( char* Command, int Len )
 {
-    write(Device, Command, Len ? Len : strlen(Command));
+    if (write(Device, Command, Len ? Len : strlen(Command)) == -1)
+        DeviceErrors++;
 }
 
 
@@ -434,14 +436,7 @@ int main( int argc, char *argv[] )
     float voltage;
 
     clearDTCs = 0;
-
-    /*option = getopt(argc, argv, "c");
-
-    if (option != -1)
-    {
-        if (option == 'c')
-            clearDTCs = 1;
-    }*/
+    DeviceErrors = 0;
 
     while((option = getopt(argc, argv, "cd")) != -1)
     {
@@ -880,6 +875,12 @@ int main( int argc, char *argv[] )
         if (CAN_Errors > CAN_ERROR_LIMIT && voltage > 13.0)
         {
             StatusPrint("[CAN ERRORS] = %i", CAN_Errors);
+            PlaySound(&beep);
+        }
+
+        if (DeviceErrors)
+        {
+            StatusPrint("[ELM327 ERROR]");
             PlaySound(&beep);
         }
 
