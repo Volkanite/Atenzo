@@ -64,6 +64,22 @@ int AuthenticateSession()
 }
 
 
+float GetAlternatorDutyCycle()
+{
+    int response;
+    float dutyCycle;
+
+    response = ReadDataByCommonIdentifier64(0x16E8);
+
+    if (!response)
+        return 0.0f;
+
+    dutyCycle = (float)response;
+
+    return dutyCycle * 0.003051757812f;
+}
+
+
 float GetAlternatorOutputVoltage()
 {
     int response;

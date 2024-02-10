@@ -61,7 +61,8 @@ typedef enum _PID_INDEX
     DTC_CNT,
     GEAR,
     VPWR,
-    ALTT_V
+    ALTT_V,
+    ALTF
 
 } PID_INDEX;
 
@@ -555,7 +556,8 @@ int main( int argc, char *argv[] )
         {"DTCs",0,Type_Int,TRUE,0.5f},
         {"GR"},
         {"VPWR","V",Type_Float,FALSE,0.0f,IsVoltageGood},
-        {"ALTV","V",Type_Float,FALSE,0.0f,IsAlternatorVoltageGood}
+        {"ALTV","V",Type_Float,FALSE,0.0f,IsAlternatorVoltageGood},
+        {"ALTF","%",Type_Float,FALSE,0.0f}
     };
 
     ParameterIdsBase = ParameterIds;
@@ -601,6 +603,7 @@ int main( int argc, char *argv[] )
         ParameterIds[DTC_CNT].Value = GetDiagnosticTroubleCodeCount();
         ParameterIds[VPWR].Value2 = GetControlModuleVoltage();
         ParameterIds[ALTT_V].Value2 = GetAlternatorOutputVoltage();
+        ParameterIds[ALTF].Value2 = GetAlternatorDutyCycle();
 
         //Fans
         fan1 = fan2 = 0;
