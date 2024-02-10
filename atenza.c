@@ -82,17 +82,7 @@ float GetAlternatorDutyCycle()
 
 float GetAlternatorOutputVoltage()
 {
-    int response;
-    float voltage;
-
-    response = ReadDataByCommonIdentifier64(0x16E9);
-
-    if (!response)
-        return 0.0f;
-
-    voltage = (float)response;
-
-    return voltage / 8.0f;
+    return (float)ReadDataByCommonIdentifier64(0x16E9) * 0.125f;
 }
 
 
@@ -247,17 +237,7 @@ float GetShortTermFuelTrim()
 
 float GetThrottlePosition()
 {
-    int response;
-    float percentage;
-
-    response = ReadDataByCommonIdentifier32(0x17B6);
-
-    if (!response) return 0.0f;
-
-    percentage = (float) response;
-    percentage = (percentage * 100.0f) / 256.0f;
-
-    return percentage;
+    return (float)ReadDataByCommonIdentifier32(0x17B6) * 0.390625f;
 }
 
 
@@ -271,7 +251,7 @@ int GetTransmissionFluidTemperature()
     if (!response) return 0;
 
     temperature = (float)response;
-    temperature = ((temperature * 240.0) / 256.0) - 53.0;
+    temperature = (temperature * 0.9375f) - 53.0f;
 
     return round(temperature);
 }
@@ -302,17 +282,7 @@ int GetTransmissionForwardGearCommanded()
 
 float GetTransmissionLinePressureSolenoidAmperage()
 {
-    int response;
-    float amperage;
-
-    response = ReadDataByCommonIdentifier32(0x17B8);
-
-    if (!response) return 0.0f;
-
-    amperage = (float) response;
-    amperage /= 256.0f;
-
-    return amperage;
+    return (float)ReadDataByCommonIdentifier32(0x17B8) * 0.00390625f;
 }
 
 
@@ -347,13 +317,7 @@ char GetTransmissionRangeSensorPosition()
 
 int GetTransmissionTurbineShaftSpeed()
 {
-    int speed;
-
-    speed = ReadDataByCommonIdentifier32(0x17B0);
-
-	  if (!speed) return 0;
-
-	  return (speed * 375) / 10;
+    return (int)(float)ReadDataByCommonIdentifier32(0x17B0) * 37.5f;
 }
 
 
