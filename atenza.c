@@ -66,17 +66,7 @@ int AuthenticateSession()
 
 float GetAlternatorDutyCycle()
 {
-    int response;
-    float dutyCycle;
-
-    response = ReadDataByCommonIdentifier64(0x16E8);
-
-    if (!response)
-        return 0.0f;
-
-    dutyCycle = (float)response;
-
-    return dutyCycle * 0.003051757812f;
+    return (float)ReadDataByCommonIdentifier64(0x16E8) * 0.003051757812f;
 }
 
 
@@ -100,16 +90,7 @@ int GetBrakeSwitchState()
 
 float GetControlModuleVoltage()
 {
-    int response;
-    float voltage;
-
-    response = ReadDataByCommonIdentifier64(0x0042);
-
-    if (!response) return 0.0f;
-
-    voltage = (float)response;
-
-    return voltage * 0.001f;
+    return (float)ReadDataByCommonIdentifier64(0x0042) * 0.001f;
 }
 
 
