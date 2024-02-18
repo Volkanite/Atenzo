@@ -516,7 +516,7 @@ int main( int argc, char *argv[] )
 
     if (Debug)
     {
-        LogFile = open("./debug.log", O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+        LogFile = open("./debug.log", O_CREAT | O_RDWR | O_APPEND, S_IRUSR | S_IWUSR);
     }
 
     if (clearDTCs)
