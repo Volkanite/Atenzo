@@ -435,6 +435,7 @@ int main( int argc, char *argv[] )
     int option;
     int clearDTCs;
     float voltage;
+    char* strEnd;
 
     clearDTCs = 0;
     DeviceErrors = 0;
@@ -872,7 +873,13 @@ int main( int argc, char *argv[] )
         removeCharFromStr(buffer, '>');
         PrintToScreen(voltage_y-2, buffer);
 
-        voltage = strtof(buffer, NULL);
+        strEnd = NULL;
+        voltage = strtof(buffer, &strEnd);
+
+        if (strEnd == buffer)
+        {
+            DeviceErrors++;
+        }
 
         //Handle CAN errors
         if (CAN_Errors > CAN_ERROR_LIMIT && voltage > 13.0)
