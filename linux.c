@@ -41,6 +41,7 @@ typedef enum _PidValueType
 
 typedef enum _PID_INDEX
 {
+    /* PCM */
     ECT,
     TFT,
     IAT,
@@ -62,7 +63,10 @@ typedef enum _PID_INDEX
     GEAR,
     VPWR,
     ALTT_V,
-    ALTF
+    ALTF,
+
+    /* ABS */
+    WSPD
 
 } PID_INDEX;
 
@@ -558,7 +562,8 @@ int main( int argc, char *argv[] )
         {"GR"},
         {"VPWR","V",Type_Float,FALSE,0.0f,IsVoltageGood},
         {"ALTV","V",Type_Float,FALSE,0.0f,IsAlternatorVoltageGood},
-        {"ALTF","%",Type_Float,FALSE,0.0f}
+        {"ALTF","%",Type_Float,FALSE,0.0f},
+        {"WSPD"}
     };
 
     ParameterIdsBase = ParameterIds;
@@ -586,6 +591,8 @@ int main( int argc, char *argv[] )
 
     while (1)
     {
+        /* PCM */
+
         ParameterIds[BOO].Value = GetBrakeSwitchState();
         ParameterIds[ECT].Value = GetEngineCoolantTemperature();
         ParameterIds[TFT].Value = GetTransmissionFluidTemperature();
@@ -613,6 +620,21 @@ int main( int argc, char *argv[] )
 
         ParameterIds[FAN1].Value = fan1;
         ParameterIds[FAN2].Value = fan2;
+
+        /* ABS */
+        GetCommandResponse("STP22\r", 0,0); //Set current protocol preset to ISO 9141-2, 10.4kbps
+        GetCommandResponse("STPO\r",0,0); // Open protocol
+        GetCommandResponse("ATSH6428F5\r", 0,0); // set header to ABS module
+
+        ParameterIds[WSPD].Value = ABS_GetWheelSpeed(WSPD_REAR_LEFT);
+        ParameterIds[WSPD].Value += ABS_GetWheelSpeed(WSPD_REAR_RIGHT);
+
+        if (ParameterIds[WSPD].Value)
+            ParameterIds[WSPD].Value /= 2;
+
+        //Revert current protocol preset to ISO 15765, 11-bit Tx, 500kbps, DLC=8; High Speed CAN (HS-CAN)
+        GetCommandResponse("STP33\r", 0,0);
+        GetCommandResponse("ATSH7E0\r", 0,0); // set header to PCM
 
         //Calculated values
         if (ParameterIds[RPM].Value && ParameterIds[TSS].Value)

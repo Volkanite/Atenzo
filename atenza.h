@@ -30,6 +30,20 @@ int GetTransmissionTurbineShaftSpeed();
 int SetFanState(int Index, int State);
 int SetTransmissionLinePressureSolenoidAmperage(float Amperage);
 
+
+/* ABS Functions */
+int ABS_GetWheelSpeed( unsigned char Wheel );
+
+typedef enum _WHEEL_SPEED
+{
+    WSPD_FRONT_LEFT,
+    WSPD_FRONT_RIGHT,
+    WSPD_REAR_LEFT,
+    WSPD_REAR_RIGHT
+
+} WHEEL_SPEED;
+
+
 /* Session IDs */
 #define SESSION_DEFAULT     0x81
 #define SESSION_PROGRAMMING 0x85
