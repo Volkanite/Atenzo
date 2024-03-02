@@ -988,7 +988,10 @@ int main( int argc, char *argv[] )
         }
 
         refresh();
-        usleep(250000);
+
+        //Relax scanning when engine not running
+        if (currentEngineState == 0)
+            usleep(950000);
     }
 
     TerminateSound();
