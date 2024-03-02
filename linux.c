@@ -79,6 +79,7 @@ typedef enum _PID_INDEX
 int Device = 0;
 int LogFile = 0;
 int Debug = 0;
+int ABS = 0;
 int ScreenX = 0;
 int ScreenY = 0;
 int CAN_Errors = 0;
@@ -622,19 +623,22 @@ int main( int argc, char *argv[] )
         ParameterIds[FAN2].Value = fan2;
 
         /* ABS */
-        GetCommandResponse("STP22\r", 0,0); //Set current protocol preset to ISO 9141-2, 10.4kbps
-        GetCommandResponse("STPO\r",0,0); // Open protocol
-        GetCommandResponse("ATSH6428F5\r", 0,0); // set header to ABS module
+        if (ABS)
+        {
+            GetCommandResponse("STP22\r", 0,0); //Set current protocol preset to ISO 9141-2, 10.4kbps
+            GetCommandResponse("STPO\r",0,0); // Open protocol
+            GetCommandResponse("ATSH6428F5\r", 0,0); // set header to ABS module
 
-        ParameterIds[WSPD].Value = ABS_GetWheelSpeed(WSPD_REAR_LEFT);
-        ParameterIds[WSPD].Value += ABS_GetWheelSpeed(WSPD_REAR_RIGHT);
+            ParameterIds[WSPD].Value = ABS_GetWheelSpeed(WSPD_REAR_LEFT);
+            ParameterIds[WSPD].Value += ABS_GetWheelSpeed(WSPD_REAR_RIGHT);
 
-        if (ParameterIds[WSPD].Value)
-            ParameterIds[WSPD].Value /= 2;
+            if (ParameterIds[WSPD].Value)
+                ParameterIds[WSPD].Value /= 2;
 
-        //Revert current protocol preset to ISO 15765, 11-bit Tx, 500kbps, DLC=8; High Speed CAN (HS-CAN)
-        GetCommandResponse("STP33\r", 0,0);
-        GetCommandResponse("ATSH7E0\r", 0,0); // set header to PCM
+            //Revert current protocol preset to ISO 15765, 11-bit Tx, 500kbps, DLC=8; High Speed CAN (HS-CAN)
+            GetCommandResponse("STP33\r", 0,0);
+            GetCommandResponse("ATSH7E0\r", 0,0); // set header to PCM
+        }
 
         //Calculated values
         if (ParameterIds[RPM].Value && ParameterIds[TSS].Value)
