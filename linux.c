@@ -156,15 +156,14 @@ void GetCommandResponse( char* Command, char* Buffer, int BufferLength)
     if(strncmp(response, "CAN ERROR", 9) == 0)
         CAN_Errors++;
 
-   if (Buffer)
-   {
-      //ncurses doesn't like the CRs
-      removeCharFromStr(response, '\r');
-      strncpy(Buffer, response, BufferLength);
+    //ncurses doesn't like the CRs
+    removeCharFromStr(response, '\r');
 
-      if (Debug)
-        LogToFile("<= %s", Buffer);
-   }
+    if (Debug)
+        LogToFile("<= %s", response);
+
+    if (Buffer)
+        strncpy(Buffer, response, BufferLength);
 }
 
 
