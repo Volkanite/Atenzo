@@ -532,13 +532,13 @@ int main( int argc, char *argv[] )
         return 0;
     }
 
-    initscr(); //init ncurses
-    InitializeDevice();
-
     InitializeSoundDevice();
 
     InitializeSound("./beep.wav", &beep);
     InitializeSound("./ding.wav", &ding);
+
+    initscr(); //init ncurses
+    InitializeDevice();
 
     PID ParameterIds[] = {
         {"ECT","°C",Type_Int,1,100.0f},
