@@ -4,13 +4,14 @@
 #include "sound.h"
 
 
-#define PCM_DEVICE "default"
-
 char *SoundBuffer;
 int buff_size;
 unsigned int s_tmp;
 snd_pcm_t *pcm_handle;
 snd_pcm_uframes_t frames;
+
+extern int Debug;
+void LogToFile( char* Format, ... );
 
 
 unsigned int GetNumSoundCards()
@@ -51,7 +52,18 @@ void InitializeSoundDevice()
 		return;
 
 	/* Open the PCM device in playback mode */
-	snd_pcm_open(&pcm_handle, PCM_DEVICE, SND_PCM_STREAM_PLAYBACK, 0);
+	if (snd_pcm_open(&pcm_handle, "default", SND_PCM_STREAM_PLAYBACK, 0) < 0)
+		return;
+
+	if (Debug)
+	{
+		snd_pcm_info_t *pcmInfo;
+
+		snd_pcm_info_alloca(&pcmInfo);
+		memset(pcmInfo, 0, snd_pcm_info_sizeof());
+		snd_pcm_info(pcm_handle, pcmInfo);
+		LogToFile("%s", snd_pcm_info_get_name(pcmInfo));
+	}
 
 	/* Allocate parameters object and fill it with default values*/
 	snd_pcm_hw_params_alloca(&params);
