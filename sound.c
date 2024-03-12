@@ -62,7 +62,7 @@ void InitializeSoundDevice()
 		snd_pcm_info_alloca(&pcmInfo);
 		memset(pcmInfo, 0, snd_pcm_info_sizeof());
 		snd_pcm_info(pcm_handle, pcmInfo);
-		LogToFile("%s", snd_pcm_info_get_name(pcmInfo));
+		LogToFile("Initialize sound device %s", snd_pcm_info_get_name(pcmInfo));
 	}
 
 	/* Allocate parameters object and fill it with default values*/
