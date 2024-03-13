@@ -58,11 +58,35 @@ void InitializeSoundDevice()
 	if (Debug)
 	{
 		snd_pcm_info_t *pcmInfo;
+		snd_ctl_t *audioHandle;
+		snd_ctl_card_info_t *cardInfo;
+		char str[64];
+		int cardNum;
+		int err;
 
 		snd_pcm_info_alloca(&pcmInfo);
 		memset(pcmInfo, 0, snd_pcm_info_sizeof());
 		snd_pcm_info(pcm_handle, pcmInfo);
-		LogToFile("Initialize sound device %s", snd_pcm_info_get_name(pcmInfo));
+
+		cardNum = snd_pcm_info_get_card(pcmInfo);
+		audioHandle = 0;
+
+		sprintf(str, "hw:%i", cardNum);
+		LogToFile("card: %s", snd_pcm_info_get_id(pcmInfo));
+
+		if ((err = snd_ctl_open(&audioHandle, str, 0)) == 0)
+		{
+			snd_ctl_card_info_alloca(&cardInfo);
+			snd_ctl_card_info(audioHandle, cardInfo);
+
+			LogToFile("Initialize sound device %s", snd_ctl_card_info_get_name(cardInfo));
+
+			snd_ctl_close(audioHandle);
+		}
+		else
+		{
+			LogToFile("Can't open card %i: %s", cardNum, snd_strerror(err));
+		}
 	}
 
 	/* Allocate parameters object and fill it with default values*/
