@@ -61,6 +61,7 @@ void InitializeSoundDevice()
 		snd_ctl_t *audioHandle;
 		snd_ctl_card_info_t *cardInfo;
 		char str[64];
+		int cardNum;
 		int err;
 
 		snd_pcm_info_alloca(&pcmInfo);
@@ -68,8 +69,11 @@ void InitializeSoundDevice()
 		snd_pcm_info(pcm_handle, pcmInfo);
 
 		audioHandle = 0;
+		cardNum = snd_pcm_info_get_card(pcmInfo);
 
-		if ((err = snd_ctl_open(&audioHandle, "hw:0", 0)) == 0)
+		sprintf(str, "hw:%i", cardNum);
+
+		if ((err = snd_ctl_open(&audioHandle, str, 0)) == 0)
 		{
 			snd_ctl_card_info_alloca(&cardInfo);
 			snd_ctl_card_info(audioHandle, cardInfo);
@@ -80,7 +84,7 @@ void InitializeSoundDevice()
 		}
 		else
 		{
-			LogToFile("Can't open card: %s", snd_strerror(err));
+			LogToFile("Can't open card %s: %s", snd_pcm_info_get_name(pcmInfo), snd_strerror(err));
 		}
 	}
 
