@@ -1,6 +1,7 @@
 /* Diagnostic and Communications Management */
 int AuthenticateSession();
 int StartDiagnosticSession(int SessionId);
+int ResetEngineControlUnit();
 int ClearDiagnosticTroubleCodes();
 int GetDiagnosticTroubleCodes(unsigned short* ArrayOfDTCs);
 

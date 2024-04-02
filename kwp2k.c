@@ -31,6 +31,20 @@ ushort GetWord( unsigned long long Value, int BytePosition, int NumberOfBytes )
 }
 
 
+int ECUReset( byte ResetMode )
+{
+    int request, response;
+
+    request = (0x11 << 8) + ResetMode;
+    response = GetCommandResponse32(request);
+
+    if ((response >> 8) != 0x51)
+        return 0;
+
+    return 1;
+}
+
+
 int ClearDiagnosticInformation( ushort GroupOfDiagnosticInformation )
 {
     int command, response;

@@ -24,6 +24,12 @@ int StartDiagnosticSession( int SessionId )
 }
 
 
+int ResetEngineControlUnit()
+{
+    return ECUReset(PowerOn);
+}
+
+
 int ClearDiagnosticTroubleCodes()
 {
     return ClearDiagnosticInformation(0xFF00);

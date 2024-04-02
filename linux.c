@@ -86,6 +86,7 @@ int CAN_Errors = 0;
 unsigned char DeviceErrors;
 int64_t EngineStartTime;
 PID* ParameterIdsBase;
+SOUND_FILE Beep, Ding;
 
 #define FAN_CTRL_HI     95
 #define FAN_CTRL_LO     90
@@ -421,6 +422,17 @@ void InitializeDevice()
 }
 
 
+void ClearDTCs()
+{
+    StatusPrint("Clearing DTCs..");
+    ClearDiagnosticTroubleCodes();
+    PlaySound(&Beep);
+
+    //force set DTC_CNT to 0 and avoid alarm in PID checks
+    ParameterIdsBase[DTC_CNT].Value = 0;
+}
+
+
 int main( int argc, char *argv[] )
 {
     int max_x, max_y, voltage_y;
@@ -434,7 +446,7 @@ int main( int argc, char *argv[] )
     int timeout, timeoutValue;
     int manualFanControl, temp, tempHi, tempLo, fan1, fan2;
     int prev_dtc_count;
-    SOUND_FILE beep, ding;
+    int neutralDTC;
     int pinged;
     int option;
     int clearDTCs;
@@ -534,8 +546,8 @@ int main( int argc, char *argv[] )
 
     InitializeSoundDevice();
 
-    InitializeSound("./beep.wav", &beep);
-    InitializeSound("./ding.wav", &ding);
+    InitializeSound("./beep.wav", &Beep);
+    InitializeSound("./ding.wav", &Ding);
 
     initscr(); //init ncurses
     InitializeDevice();
@@ -574,6 +586,7 @@ int main( int argc, char *argv[] )
     start = delta = timeout = timeoutValue = 0;
     manualFanControl = 0;
     prev_dtc_count = 0;
+    neutralDTC = 0;
     pinged = FALSE;
 
     tempHi = FAN_CTRL_HI;
@@ -697,20 +710,24 @@ int main( int argc, char *argv[] )
 
                     if (DTCs[i] == 0x500)
                         dtcFound = 1;
+                    else if (DTCs[i] == 0x894)
+                        neutralDTC = 1;
                 }
 
                 StatusPrint(buffer);
 
                 if (Debug && dtcFound)
-                {
-                    StatusPrint("Clearing DTCs..");
-                    ClearDiagnosticTroubleCodes();
-                    PlaySound(&beep);
-
-                    //force set DTC_CNT to 0 and avoid alarm lower down in PID checks
-                    ParameterIds[DTC_CNT].Value = 0;
-                }
+                    ClearDTCs();
             }
+        }
+
+        if (neutralDTC && ParameterIds[TR].Value == 'N')
+        {
+            neutralDTC = 0;
+
+            ClearDTCs();
+            ResetEngineControlUnit();
+            usleep(750000); //An ECU is allowed a 750ms re-initialization period.
         }
 
         prev_dtc_count = ParameterIds[DTC_CNT].Value;
@@ -732,7 +749,7 @@ int main( int argc, char *argv[] )
                     StatusPrint("turning on FAN1..");
 
                     if (SetFanState(0,1))
-                        PlaySound(&ding);
+                        PlaySound(&Ding);
                 }
                 else
                 {
@@ -791,7 +808,7 @@ int main( int argc, char *argv[] )
             float time;
 
             StatusPrint("Release throttle to commit LPS..");
-            PlaySound(&beep);
+            PlaySound(&Beep);
 
             awaitingFullPressure = 1;
             temp = ParameterIds[TFT].Value;
@@ -843,7 +860,7 @@ int main( int argc, char *argv[] )
 
             UnlockActuation();
             SetTransmissionLinePressureSolenoidAmperage(0.0);
-            PlaySound(&ding);
+            PlaySound(&Ding);
         }
 
         if (fullPressure && ParameterIds[TR].Value == 'D')
@@ -874,7 +891,7 @@ int main( int argc, char *argv[] )
 
             if (!pinged && ParameterIds[DR].Value2 == 0.0)
             {
-                PlaySound(&ding);
+                PlaySound(&Ding);
                 pinged = TRUE;
             }
         }
@@ -890,7 +907,7 @@ int main( int argc, char *argv[] )
                 start = delta = timeout = timeoutValue = 0;
 
             StatusPrint("Returning LPS control to ECU..");
-            PlaySound(&beep);
+            PlaySound(&Beep);
         }
 
         //Print voltage
@@ -910,13 +927,13 @@ int main( int argc, char *argv[] )
         if (CAN_Errors > CAN_ERROR_LIMIT && voltage > 13.0)
         {
             StatusPrint("[CAN ERRORS] = %i", CAN_Errors);
-            PlaySound(&beep);
+            PlaySound(&Beep);
         }
 
         if (DeviceErrors)
         {
             StatusPrint("[ELM327 ERROR]");
-            PlaySound(&beep);
+            PlaySound(&Beep);
         }
 
         //Print PIDs
@@ -964,7 +981,7 @@ int main( int argc, char *argv[] )
                     init_pair(1, COLOR_RED, COLOR_BLACK);
                     attron(COLOR_PAIR(1));
 
-                    PlaySound(&beep);
+                    PlaySound(&Beep);
                 }
             }
 
