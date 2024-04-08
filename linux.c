@@ -874,11 +874,11 @@ int main( int argc, char *argv[] )
 
             if (delta > timeoutValue)
             {
-                if (ParameterIds[THOP].Value2 > 0.30
-                    && ParameterIds[THOP].Value2 < 8.0
+                if ( (ParameterIds[OP_SW_B].Value == 0 || ParameterIds[DR].Value2 > 0.05)
                     && ParameterIds[RPM].Value < 1400
-                    && ParameterIds[TFT].Value < 76
-                    && ParameterIds[DR].Value2 > 0.10)
+                    && ParameterIds[THOP].Value2 > 0.30
+                    && ParameterIds[THOP].Value2 < 8.0
+                    )
                 {
                     StatusPrint("Extending timer for another 30s");
                     timeoutValue += 30000;
