@@ -533,7 +533,30 @@ int main( int argc, char *argv[] )
 
     if (Debug)
     {
-        LogFile = open("./debug.log", O_CREAT | O_RDWR | O_APPEND, S_IRUSR | S_IWUSR);
+        unsigned int i;
+
+        i = 0;
+
+        while (i < 9)
+        {
+            char logfileName[13];
+
+            snprintf(logfileName, 13, "./debug%u.log", ++i);
+
+            LogFile = open(logfileName, O_CREAT | O_RDWR | O_APPEND, S_IRUSR | S_IWUSR);
+
+            if (LogFile != -1)
+        	{
+                // check if file size is greater than 50 MB
+                if (lseek(LogFile, 0, SEEK_END) > 52428800)
+                {
+                    close(LogFile);
+                    continue;
+                }
+        	}
+
+            break;
+        }
     }
 
     if (clearDTCs)
