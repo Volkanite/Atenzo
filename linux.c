@@ -899,7 +899,6 @@ int main( int argc, char *argv[] )
             {
                 if ( (ParameterIds[OP_SW_B].Value == 0 || ParameterIds[DR].Value2 > 0.05)
                     && ParameterIds[RPM].Value < 1400
-                    && ParameterIds[THOP].Value2 > 0.30
                     && ParameterIds[THOP].Value2 < 8.0
                     )
                 {
