@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 #include "sound.h"
-
+#define PCM_NAME "default"
 
 char *SoundBuffer;
 int buff_size;
@@ -52,7 +52,7 @@ void InitializeSoundDevice()
 		return;
 
 	/* Open the PCM device in playback mode */
-	if (snd_pcm_open(&pcm_handle, "default", SND_PCM_STREAM_PLAYBACK, 0) < 0)
+	if (snd_pcm_open(&pcm_handle, PCM_NAME, SND_PCM_STREAM_PLAYBACK, 0) < 0)
 		return;
 
 	if (Debug)
