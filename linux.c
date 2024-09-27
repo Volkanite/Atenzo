@@ -86,7 +86,7 @@ int CAN_Errors = 0;
 unsigned char DeviceErrors;
 int64_t EngineStartTime;
 PID* ParameterIdsBase;
-SOUND_FILE Beep, Ding;
+SOUND_FILE Beep, Ding, Radar;
 
 #define FAN_CTRL_HI     95
 #define FAN_CTRL_LO     90
@@ -394,6 +394,12 @@ int IsAlternatorVoltageGood( PID* ParameterIdsBasePtr )
 }
 
 
+float GetSlopeIntercept( float Input, float Slope, float Intercept )
+{
+    return (Input * Slope) + Intercept;
+}
+
+
 void InitializeDevice()
 {
     // Reboot device to flush any bad settings
@@ -569,8 +575,14 @@ int main( int argc, char *argv[] )
 
     InitializeSoundDevice();
 
-    InitializeSound("./beep.wav", &Beep);
-    InitializeSound("./ding.wav", &Ding);
+    if (!InitializeSoundFile("./beep.wav", &Beep))
+        printf("failed to initialize sound file: beep.wav\n");
+
+    if (!InitializeSoundFile("./ding.wav", &Ding))
+        printf("failed to initialize sound file: ding.wav\n");
+
+    if (!InitializeSoundFile("./radar.wav", &Radar))
+        printf("failed to initialize sound file: radar.wav\n");
 
     initscr(); //init ncurses
     InitializeDevice();
@@ -819,6 +831,7 @@ int main( int argc, char *argv[] )
             }
         }
 
+        // Gas + Brake Pedal mash
         if (Debug
             && !fullPressure
             && !awaitingFullPressure
@@ -838,10 +851,13 @@ int main( int argc, char *argv[] )
 
             //Point1: x=30°C, y=150000 ms (2.5 min)
             //Point2: x=75°C, y=30000 ms (0.5 min)
-            slope = -2666.67f;
+
+            /*slope = -2666.67f;
             intercept = 230000.0f;
 
-            time = ((float)temp * slope) + intercept;
+            time = ((float)temp * slope) + intercept;*/
+
+            time = GetSlopeIntercept((float)temp, -2666.67f, 230000.0f);
 
             if (!timeoutValue)
                 timeoutValue = (int) time;
@@ -851,6 +867,7 @@ int main( int argc, char *argv[] )
                 timeoutValue = 30000;
         }
 
+        // Gas Pedal Released / Activate full pressure
         if (awaitingFullPressure && ParameterIds[THOP].Value2 < 0.78)
         {
             char buffer[50];
@@ -886,8 +903,11 @@ int main( int argc, char *argv[] )
             PlaySound(&Ding);
         }
 
+        // Full Pressure Activated / Gear Selector in "D"
         if (fullPressure && ParameterIds[TR].Value == 'D')
         {
+            float time;
+
             releasePressure = 1;
 
             if (!start)
@@ -911,13 +931,26 @@ int main( int argc, char *argv[] )
                 }
             }
 
-            if (!pinged && ParameterIds[DR].Value2 == 0.0)
+            if (!pinged)
             {
-                PlaySound(&Ding);
-                pinged = TRUE;
+                // Play radar sound
+                time = GetSlopeIntercept(ParameterIds[DR].Value2, 8000.0f, -3000.0f);
+                Radar.Interval = (long long) time;
+
+                if (Radar.Interval < 0)
+                    Radar.Interval = 0;
+
+                PlaySound(&Radar);
+
+                if (ParameterIds[DR].Value2 == 0.0)
+                {
+                    PlaySound(&Ding);
+                    pinged = TRUE;
+                }
             }
         }
 
+        // Release Full Pressure
         if ((releasePressure && ParameterIds[TR].Value != 'D') || timeout)
         {
             //Return LPS control to ECU

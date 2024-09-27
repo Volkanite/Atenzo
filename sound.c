@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "sound.h"
+#include "atenzo.h"
 #define PCM_NAME "default"
 
 char *SoundBuffer;
@@ -9,9 +10,6 @@ int buff_size;
 unsigned int s_tmp;
 snd_pcm_t *pcm_handle;
 snd_pcm_uframes_t frames;
-
-extern int Debug;
-void LogToFile( char* Format, ... );
 
 
 unsigned int GetNumSoundCards()
@@ -111,25 +109,28 @@ void InitializeSoundDevice()
 }
 
 
-void InitializeSound( char* FileName, SOUND_FILE* SoundFile )
+unsigned int InitializeSoundFile( char* FileName, SOUND_FILE* SoundFile )
 {
-	SoundFile->Handle = open(FileName, O_RDONLY);
+    SoundFile->Handle = open(FileName, O_RDONLY);
 
-	if (SoundFile->Handle == 0)
-	{
-		printf("Could not open source file\n");
-	}
-
-	//unsigned int pcm, dir;
-
-	//InitializeSoundDevice();
+		if (SoundFile->Handle == 0)
+		{
+				//printf("Could not open source file\n");
+				return 0;
+		}
 
 	SoundFile->Size = lseek(SoundFile->Handle, 0, SEEK_END);
 	SoundFile->Buffer = (char *) malloc(SoundFile->Size);
 
 	lseek(SoundFile->Handle, 0, SEEK_SET);
 	read(SoundFile->Handle, SoundFile->Buffer, SoundFile->Size);
+
+	SoundFile->Interval = 0;
+	SoundFile->LastPlayed = 0;
+
 	//close(SoundFile->Handle);
+
+    return 1;
 }
 
 
@@ -216,6 +217,13 @@ int PlaySoundFromBuffer( SOUND_FILE* SoundFile )
 
 int PlaySound( SOUND_FILE* SoundFile )
 {
+	long long time;
+
+	time = current_timestamp();
+
+	if (SoundFile->Interval && (time - SoundFile->LastPlayed < SoundFile->Interval))
+		return 0;
+
 	//Check if sound card was unplugged and re-initialize
 	if (pcm_handle == 0 || snd_pcm_state(pcm_handle) == SND_PCM_STATE_DISCONNECTED)
 	{
@@ -224,6 +232,8 @@ int PlaySound( SOUND_FILE* SoundFile )
 
 	snd_pcm_prepare(pcm_handle); //reset sound card buffer
 	PlaySoundFromFile(SoundFile);
+
+	SoundFile->LastPlayed = time;
 
 	return 0;
 }

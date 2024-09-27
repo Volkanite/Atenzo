@@ -2,10 +2,12 @@ typedef struct _SOUND_FILE
 {
 	int Handle;
 	int Size;
+	long long Interval;
+	long long LastPlayed;
 	char* Buffer;
 }SOUND_FILE;
 
 void InitializeSoundDevice();
-void InitializeSound(char* FileName, SOUND_FILE* SoundFile);
+unsigned int InitializeSoundFile(char* FileName, SOUND_FILE* SoundFile);
 void TerminateSound();
 int PlaySound(SOUND_FILE* SoundFile);
