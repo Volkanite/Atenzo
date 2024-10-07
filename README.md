@@ -1,13 +1,18 @@
 ## Compiling
-### Debian
-`sudo apt-get install libncurses5-dev libasound2-dev`  
+
+### Preparing
+**Debian:** `sudo apt-get install libncurses5-dev libasound2-dev`  
+**Gentoo:** `sudo emerge media-sound/alsa-utils`  
+
+### Compile
+`git clone https://github.com/Volkanite/Atenzo.git`  
+`git submodule update --init --progress`  
+`cd mxml`  
+`./configure`  
+`cd ..`  
 `./compile.sh`
 
-### Gentoo
-`sudo emerge media-sound/alsa-utils`  
-`./compile.sh`
-
-## Running
+### Running
 `./atenzo`
 
 NOTE 1: If using a custom kernel, be sure to add ftdi_sio.ko module (CONFIG_USB_SERIAL_FTDI_SIO).  

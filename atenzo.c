@@ -11,6 +11,7 @@
 
 #include "atenza.h"
 #include "sound.h"
+#include "./mxml/mxml.h"
 
 
 typedef struct _PID PID;
@@ -28,6 +29,11 @@ typedef struct _PID
     float Value2;
 }PID;
 
+typedef struct _DTC
+{
+    char Code[6];
+    char Description[117];
+}DTC;
 
 typedef enum _PidValueType
 {
@@ -87,6 +93,7 @@ unsigned char DeviceErrors;
 int64_t EngineStartTime;
 PID* ParameterIdsBase;
 SOUND_FILE Beep, Ding, Radar;
+DTC DiagnosticTroubleCodes[6666];
 
 #define FAN_CTRL_HI     95
 #define FAN_CTRL_LO     90
@@ -97,6 +104,7 @@ SOUND_FILE Beep, Ding, Radar;
 
 char * removeCharFromStr(char *string, char character);
 void GetClockTime( char* Buffer, struct tm* Time );
+
 
 
 void Send( char* Command, int Len )
@@ -439,6 +447,44 @@ void ClearDTCs()
 }
 
 
+char numericChar(uint8_t c)
+{
+    if (c <= 9)
+    {
+        return (char)(c) + '0';
+    }
+    else if (c <= 15)
+    {
+        return (char)(c) - 10 + 'A';
+    }
+    return '?';
+}
+
+
+DTC* GetDiagnosticTroubleCodeDescription( ushort Code )
+{
+    char code[6];
+    char firstDtc[4] = {'P', 'C', 'B', 'U'};
+
+    code[0] = firstDtc[(Code & 0xC000) >> 14];
+    code[1] = numericChar((Code & 0x3000) >> 12);
+    code[2] = numericChar((Code & 0x0F00) >> 8);
+    code[3] = numericChar((Code & 0x00F0) >> 4);
+    code[4] = numericChar(Code & 0x000F);
+    code[5] = '\0';
+
+    for (int i = 0; i < sizeof(DiagnosticTroubleCodes)/sizeof(DiagnosticTroubleCodes[0]); i++)
+    {
+        if (strncmp(code, DiagnosticTroubleCodes[i].Code, 5) == 0)
+        {
+            return &DiagnosticTroubleCodes[i];
+        }
+    }
+
+    return 0;
+}
+
+
 int main( int argc, char *argv[] )
 {
     int max_x, max_y, voltage_y;
@@ -456,13 +502,14 @@ int main( int argc, char *argv[] )
     int pinged;
     int option;
     int clearDTCs;
+    int listDTCs;
     float voltage;
     char* strEnd;
 
-    clearDTCs = 0;
+    clearDTCs = listDTCs = 0;
     DeviceErrors = 0;
 
-    while((option = getopt(argc, argv, "cd")) != -1)
+    while((option = getopt(argc, argv, "cdl")) != -1)
     {
         switch (option)
         {
@@ -472,6 +519,10 @@ int main( int argc, char *argv[] )
 
             case 'd':
                 Debug = 1;
+                break;
+
+            case 'l':
+                listDTCs = 1;
                 break;
         }
     }
@@ -570,6 +621,86 @@ int main( int argc, char *argv[] )
         printf("Clearing DTCs..\n");
         InitializeDevice();
         ClearDiagnosticTroubleCodes();
+        return 0;
+    }
+    else if (listDTCs)
+    {
+        ushort DTCs[8];
+        unsigned int nDTCs;
+        mxml_node_t *topNode, *currentNode;
+        int codesFile;
+        int i;
+
+        InitializeDevice();
+
+        memset(DTCs, 0, sizeof(DTCs));
+
+        nDTCs = GetDiagnosticTroubleCodes(DTCs);
+
+        if (!nDTCs)
+        {
+            printf("No DTCs found...\n");
+            return 0;
+        }
+
+        codesFile = open("./codes.xml", O_RDWR);
+        topNode = mxmlLoadFd(NULL, codesFile, NULL);
+
+        if (!topNode)
+        {
+            printf("Error loading DTCs!");
+            return 0;
+        }
+
+        topNode = topNode->child;
+        currentNode = topNode;
+        i = 0;
+        currentNode = currentNode->next;
+        //printf("%s", currentNode->value.element.name);
+
+        while (currentNode)
+        {
+            char *attrib;
+
+            attrib = (char*) mxmlElementGetAttr(currentNode, "code");
+
+            if (attrib)
+            {
+                mxml_node_t *text;
+
+                //printf("%i %s", i, attrib);
+                strcpy(DiagnosticTroubleCodes[i].Code, attrib);
+
+                text = currentNode->child;
+
+                strcpy(DiagnosticTroubleCodes[i].Description, "");
+
+                while (text)
+                {
+                    //printf(" %s", text->value.text.string);
+                    strcat(DiagnosticTroubleCodes[i].Description, text->value.text.string);
+                    strcat(DiagnosticTroubleCodes[i].Description, " ");
+
+                    text = text->next;
+                }
+
+                //printf("\n");
+            }
+
+            i++;
+            currentNode = currentNode->next->next;
+        }
+
+        for (int i = 0; i < nDTCs && i < sizeof(DTCs)/sizeof(DTCs[0]); i++)
+        {
+            DTC* dtc;
+
+            dtc = GetDiagnosticTroubleCodeDescription(DTCs[i]);
+
+            if (dtc)
+                printf("%s %s\n", dtc->Code, dtc->Description);
+        }
+
         return 0;
     }
 

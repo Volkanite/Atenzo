@@ -1,0 +1,4 @@
+[submodule "mxml"]
+	path = mxml
+	url = https://github.com/michaelrsweet/mxml.git
+	branch = master
