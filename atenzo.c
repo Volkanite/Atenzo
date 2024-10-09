@@ -505,11 +505,13 @@ int main( int argc, char *argv[] )
     int listDTCs;
     float voltage;
     char* strEnd;
+    char* pcmName;
 
     clearDTCs = listDTCs = 0;
     DeviceErrors = 0;
+    pcmName = NULL;
 
-    while((option = getopt(argc, argv, "cdl")) != -1)
+    while((option = getopt(argc, argv, "cdls:")) != -1)
     {
         switch (option)
         {
@@ -524,6 +526,17 @@ int main( int argc, char *argv[] )
             case 'l':
                 listDTCs = 1;
                 break;
+            
+            case 's':
+            {
+                pcmName = (char*) malloc(strlen(optarg) + 1);
+
+                if (pcmName)
+                {
+                    strcpy(pcmName, optarg);
+                }
+            }   
+            break;
         }
     }
 
@@ -704,7 +717,7 @@ int main( int argc, char *argv[] )
         return 0;
     }
 
-    InitializeSoundDevice();
+    InitializeSoundDevice(pcmName);
 
     if (!InitializeSoundFile("./beep.wav", &Beep))
         printf("failed to initialize sound file: beep.wav\n");

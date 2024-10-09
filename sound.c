@@ -3,9 +3,10 @@
 
 #include "sound.h"
 #include "atenzo.h"
-#define PCM_NAME "default"
+#define PCM_DEVICE_NAME "default"
 
 char *SoundBuffer;
+char *SoundDeviceName;
 int buff_size;
 unsigned int s_tmp;
 snd_pcm_t *pcm_handle;
@@ -37,7 +38,7 @@ unsigned int GetNumSoundCards()
 }
 
 
-void InitializeSoundDevice()
+void InitializeSoundDevice( char* DeviceName )
 {
 	snd_pcm_hw_params_t *params;
 	int rate, channels;
@@ -49,10 +50,14 @@ void InitializeSoundDevice()
 	if(GetNumSoundCards() == 0)
 		return;
 
+	SoundDeviceName = NULL;
+
 	/* Open the PCM device in playback mode */
-	if (snd_pcm_open(&pcm_handle, PCM_NAME, SND_PCM_STREAM_PLAYBACK, 0) < 0)
+	if (snd_pcm_open(&pcm_handle, DeviceName ? DeviceName:PCM_DEVICE_NAME, SND_PCM_STREAM_PLAYBACK, 0) < 0)
 		return;
 
+	SoundDeviceName = DeviceName;
+	
 	if (Debug)
 	{
 		snd_pcm_info_t *pcmInfo;
@@ -227,7 +232,7 @@ int PlaySound( SOUND_FILE* SoundFile )
 	//Check if sound card was unplugged and re-initialize
 	if (pcm_handle == 0 || snd_pcm_state(pcm_handle) == SND_PCM_STATE_DISCONNECTED)
 	{
-		InitializeSoundDevice();
+		InitializeSoundDevice(SoundDeviceName);
 	}
 
 	snd_pcm_prepare(pcm_handle); //reset sound card buffer
