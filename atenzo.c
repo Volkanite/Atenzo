@@ -100,6 +100,7 @@ DTC DiagnosticTroubleCodes[6666];
 #define FAN_CTRL_CRIT   100
 
 #define CAN_ERROR_LIMIT 888
+#define ALARM_DTC       TRUE
 
 
 char * removeCharFromStr(char *string, char character);
@@ -749,7 +750,7 @@ int main( int argc, char *argv[] )
         {"STFT",0,Type_Float},
         {"MAF","g/s",Type_Float},
         {"FSS", 0,3},
-        {"DTCs",0,Type_Int,TRUE,0.5f},
+        {"DTCs",0,Type_Int,ALARM_DTC,0.5f},
         {"GR"},
         {"VPWR","V",Type_Float,FALSE,0.0f,IsVoltageGood},
         {"ALTV","V",Type_Float,FALSE,0.0f,IsAlternatorVoltageGood},
