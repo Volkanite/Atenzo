@@ -486,6 +486,58 @@ DTC* GetDiagnosticTroubleCodeDescription( ushort Code )
 }
 
 
+void LoadDiagnosticTroubleCodes()
+{
+    //ushort DTCs[8];
+    //unsigned int nDTCs;
+    mxml_node_t *topNode, *currentNode;
+    int codesFile;
+    int i;
+
+    codesFile = open("./codes.xml", O_RDWR);
+    topNode = mxmlLoadFd(NULL, codesFile, NULL);
+
+    if (!topNode)
+    {
+        printf("Error loading DTCs!");
+        return;
+    }
+
+    topNode = topNode->child;
+    currentNode = topNode;
+    i = 0;
+    currentNode = currentNode->next;
+    //printf("%s", currentNode->value.element.name);
+
+    while (currentNode)
+    {
+        char *attrib;
+        attrib = (char*) mxmlElementGetAttr(currentNode, "code");
+
+        if (attrib)
+        {
+            mxml_node_t *text;
+            //printf("%i %s", i, attrib);
+            strcpy(DiagnosticTroubleCodes[i].Code, attrib);
+            text = currentNode->child;
+            strcpy(DiagnosticTroubleCodes[i].Description, "");
+
+            while (text)
+            {
+                //printf(" %s", text->value.text.string);
+                strcat(DiagnosticTroubleCodes[i].Description, text->value.text.string);
+                strcat(DiagnosticTroubleCodes[i].Description, " ");
+                text = text->next;
+            }
+            //printf("\n");
+        }
+
+        i++;
+        currentNode = currentNode->next->next;
+    }
+}
+
+
 int main( int argc, char *argv[] )
 {
     int max_x, max_y, voltage_y;
@@ -641,9 +693,9 @@ int main( int argc, char *argv[] )
     {
         ushort DTCs[8];
         unsigned int nDTCs;
-        mxml_node_t *topNode, *currentNode;
-        int codesFile;
-        int i;
+        //mxml_node_t *topNode, *currentNode;
+        //int codesFile;
+        //int i;
 
         InitializeDevice();
 
@@ -657,53 +709,7 @@ int main( int argc, char *argv[] )
             return 0;
         }
 
-        codesFile = open("./codes.xml", O_RDWR);
-        topNode = mxmlLoadFd(NULL, codesFile, NULL);
-
-        if (!topNode)
-        {
-            printf("Error loading DTCs!");
-            return 0;
-        }
-
-        topNode = topNode->child;
-        currentNode = topNode;
-        i = 0;
-        currentNode = currentNode->next;
-        //printf("%s", currentNode->value.element.name);
-
-        while (currentNode)
-        {
-            char *attrib;
-
-            attrib = (char*) mxmlElementGetAttr(currentNode, "code");
-
-            if (attrib)
-            {
-                mxml_node_t *text;
-
-                //printf("%i %s", i, attrib);
-                strcpy(DiagnosticTroubleCodes[i].Code, attrib);
-
-                text = currentNode->child;
-
-                strcpy(DiagnosticTroubleCodes[i].Description, "");
-
-                while (text)
-                {
-                    //printf(" %s", text->value.text.string);
-                    strcat(DiagnosticTroubleCodes[i].Description, text->value.text.string);
-                    strcat(DiagnosticTroubleCodes[i].Description, " ");
-
-                    text = text->next;
-                }
-
-                //printf("\n");
-            }
-
-            i++;
-            currentNode = currentNode->next->next;
-        }
+        LoadDiagnosticTroubleCodes();
 
         for (int i = 0; i < nDTCs && i < sizeof(DTCs)/sizeof(DTCs[0]); i++)
         {
@@ -731,6 +737,7 @@ int main( int argc, char *argv[] )
 
     initscr(); //init ncurses
     InitializeDevice();
+    LoadDiagnosticTroubleCodes();
 
     PID ParameterIds[] = {
         {"ECT","°C",Type_Int,1,100.0f},
@@ -878,6 +885,7 @@ int main( int argc, char *argv[] )
 
             if(GetDiagnosticTroubleCodes(DTCs))
             {
+                DTC* dtc;
                 strcpy(buffer, "DTCs:");
 
                 for (
@@ -885,8 +893,13 @@ int main( int argc, char *argv[] )
                   i < ParameterIds[DTC_CNT].Value && i < sizeof(DTCs)/sizeof(DTCs[0]);
                   i++)
                 {
-                    snprintf(buffer2, 150, i?", %X":" %X", DTCs[i]);
-                    strcat(buffer, buffer2);
+                    dtc = GetDiagnosticTroubleCodeDescription(DTCs[i]);
+                    
+                    if (dtc)
+                    {
+                        snprintf(buffer2, 150, i?", %s":" %s", dtc->Code);
+                        strcat(buffer, buffer2);
+                    }
 
                     if (DTCs[i] == 0x500)
                         dtcFound = 1;
