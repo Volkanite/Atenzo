@@ -9,7 +9,7 @@ char *SoundBuffer;
 char *SoundDeviceName;
 int buff_size;
 unsigned int s_tmp;
-snd_pcm_t *pcm_handle;
+snd_pcm_t *SoundDeviceHandle;
 snd_pcm_uframes_t frames;
 
 
@@ -45,15 +45,14 @@ void InitializeSoundDevice( char* DeviceName )
 
 	rate 	 = 44100;
 	channels = 1;
-	pcm_handle = 0;
+	SoundDeviceHandle = NULL;
+	SoundDeviceName = NULL;
 
 	if(GetNumSoundCards() == 0)
 		return;
 
-	SoundDeviceName = NULL;
-
 	/* Open the PCM device in playback mode */
-	if (snd_pcm_open(&pcm_handle, DeviceName ? DeviceName:PCM_DEVICE_NAME, SND_PCM_STREAM_PLAYBACK, 0) < 0)
+	if (snd_pcm_open(&SoundDeviceHandle, DeviceName ? DeviceName:PCM_DEVICE_NAME, SND_PCM_STREAM_PLAYBACK, 0) < 0)
 		return;
 
 	SoundDeviceName = DeviceName;
@@ -69,7 +68,7 @@ void InitializeSoundDevice( char* DeviceName )
 
 		snd_pcm_info_alloca(&pcmInfo);
 		memset(pcmInfo, 0, snd_pcm_info_sizeof());
-		snd_pcm_info(pcm_handle, pcmInfo);
+		snd_pcm_info(SoundDeviceHandle, pcmInfo);
 
 		audioHandle = 0;
 		cardNum = snd_pcm_info_get_card(pcmInfo);
@@ -93,16 +92,16 @@ void InitializeSoundDevice( char* DeviceName )
 
 	/* Allocate parameters object and fill it with default values*/
 	snd_pcm_hw_params_alloca(&params);
-	snd_pcm_hw_params_any(pcm_handle, params);
+	snd_pcm_hw_params_any(SoundDeviceHandle, params);
 
 	/* Set parameters */
-	snd_pcm_hw_params_set_access(pcm_handle, params, SND_PCM_ACCESS_RW_INTERLEAVED);
-	snd_pcm_hw_params_set_format(pcm_handle, params, SND_PCM_FORMAT_S16_LE);
-	snd_pcm_hw_params_set_channels(pcm_handle, params, channels);
-	snd_pcm_hw_params_set_rate_near(pcm_handle, params, &rate, 0);
+	snd_pcm_hw_params_set_access(SoundDeviceHandle, params, SND_PCM_ACCESS_RW_INTERLEAVED);
+	snd_pcm_hw_params_set_format(SoundDeviceHandle, params, SND_PCM_FORMAT_S16_LE);
+	snd_pcm_hw_params_set_channels(SoundDeviceHandle, params, channels);
+	snd_pcm_hw_params_set_rate_near(SoundDeviceHandle, params, &rate, 0);
 
 	/* Write parameters */
-	snd_pcm_hw_params(pcm_handle, params);
+	snd_pcm_hw_params(SoundDeviceHandle, params);
 
 	/* Get info */
 	snd_pcm_hw_params_get_channels(params, &s_tmp);
@@ -141,8 +140,8 @@ unsigned int InitializeSoundFile( char* FileName, SOUND_FILE* SoundFile )
 
 void TerminateSound()
 {
-	snd_pcm_drain(pcm_handle);
-	snd_pcm_close(pcm_handle);
+	snd_pcm_drain(SoundDeviceHandle);
+	snd_pcm_close(SoundDeviceHandle);
 }
 
 
@@ -166,7 +165,7 @@ int PlaySoundFromFile( SOUND_FILE* SoundFile )
 	int bufferSize;
 
 	lseek(SoundFile->Handle, 0, SEEK_SET);
-	//snd_pcm_prepare(pcm_handle); //reset sound card buffer
+	//snd_pcm_prepare(SoundDeviceHandle); //reset sound card buffer
 
 	bufferSize = buff_size;
 
@@ -183,9 +182,9 @@ int PlaySoundFromFile( SOUND_FILE* SoundFile )
 			return 0;
 		}
 
-		if (snd_pcm_writei(pcm_handle, SoundFile->Buffer, frames) == -EPIPE)
+		if (snd_pcm_writei(SoundDeviceHandle, SoundFile->Buffer, frames) == -EPIPE)
 		{
-			snd_pcm_prepare(pcm_handle);
+			snd_pcm_prepare(SoundDeviceHandle);
 		}
 	}
 
@@ -204,9 +203,9 @@ int PlaySoundFromBuffer( SOUND_FILE* SoundFile )
 
 	while (totalBytesRead < SoundFile->Size)
 	{
-		if (snd_pcm_writei(pcm_handle, buff, frames) == -EPIPE)
+		if (snd_pcm_writei(SoundDeviceHandle, buff, frames) == -EPIPE)
 		{
-			snd_pcm_prepare(pcm_handle);
+			snd_pcm_prepare(SoundDeviceHandle);
 		}
 
 		if (totalBytesRead + bytesToRead > SoundFile->Size)
@@ -229,13 +228,10 @@ int PlaySound( SOUND_FILE* SoundFile )
 	if (SoundFile->Interval && (time - SoundFile->LastPlayed < SoundFile->Interval))
 		return 0;
 
-	//Check if sound card was unplugged and re-initialize
-	if (pcm_handle == 0 || snd_pcm_state(pcm_handle) == SND_PCM_STATE_DISCONNECTED)
-	{
-		InitializeSoundDevice(SoundDeviceName);
-	}
+	if (SoundDeviceHandle == NULL)
+		return 0;
 
-	snd_pcm_prepare(pcm_handle); //reset sound card buffer
+	snd_pcm_prepare(SoundDeviceHandle); //reset sound card buffer
 	PlaySoundFromFile(SoundFile);
 
 	SoundFile->LastPlayed = time;
