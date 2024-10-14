@@ -95,9 +95,9 @@ PID* ParameterIdsBase;
 SOUND_FILE Beep, Ding, Radar;
 DTC DiagnosticTroubleCodes[6666];
 
-#define FAN_CTRL_HI     95
-#define FAN_CTRL_LO     90
-#define FAN_CTRL_CRIT   100
+#define FAN_CTRL_HI         95
+#define FAN_CTRL_LO         90
+#define ECT_TFT_TEMP_CRIT   100
 
 #define CAN_ERROR_LIMIT 888
 #define ALARM_DTC       TRUE
@@ -740,8 +740,8 @@ int main( int argc, char *argv[] )
     LoadDiagnosticTroubleCodes();
 
     PID ParameterIds[] = {
-        {"ECT","°C",Type_Int,1,100.0f},
-        {"TFT","°C",Type_Int,1,100.0f},
+        {"ECT","°C",Type_Int,1,(float)ECT_TFT_TEMP_CRIT},
+        {"TFT","°C",Type_Int,1,(float)ECT_TFT_TEMP_CRIT},
         {"IAT","°C"},
         {"FAN1"},
         {"FAN2"},
@@ -950,7 +950,7 @@ int main( int argc, char *argv[] )
                 }
             }
 
-            if (temp > FAN_CTRL_CRIT && !fan2)
+            if (temp > ECT_TFT_TEMP_CRIT && !fan2)
             {
                 manualFanControl = 1;
 
