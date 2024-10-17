@@ -89,6 +89,7 @@ int ABS = 0;
 int ScreenX = 0;
 int ScreenY = 0;
 int CAN_Errors = 0;
+int CheckBus;
 unsigned char DeviceErrors;
 int64_t EngineStartTime;
 PID* ParameterIdsBase;
@@ -164,7 +165,10 @@ void GetCommandResponse( char* Command, char* Buffer, int BufferLength)
     } while ((n > 0) && (*(readpt-1)!='>') && (ntot<max_ntot) );
 
     if(strncmp(response, "CAN ERROR", 9) == 0)
+    {
         CAN_Errors++;
+        CheckBus = TRUE;
+    }
 
     //ncurses doesn't like the CRs
     removeCharFromStr(response, '\r');
@@ -409,6 +413,19 @@ float GetSlopeIntercept( float Input, float Slope, float Intercept )
 }
 
 
+void SetupDevice()
+{
+    //Set current protocol preset to ISO 15765, 11-bit Tx, 500kbps, DLC=8; High Speed CAN (HS-CAN)
+    GetCommandResponse("STP33\r", 0,0);
+
+    GetCommandResponse("ATSH7E0\r", 0,0); // set the header of transmitted OBD messages
+    GetCommandResponse("ATL0\r", 0,0); // turn off line feed
+    GetCommandResponse("ATE0\r", 0,0); //Echo off
+    GetCommandResponse("ATS0\r", 0,0); //Turn off spaces on OBD responses
+    GetCommandResponse("STCSEGR1\r", 0,0); //Disable PCI bytes
+}
+
+
 void InitializeDevice()
 {
     // Reboot device to flush any bad settings
@@ -426,14 +443,7 @@ void InitializeDevice()
     Echo("ATDP\r"); //describe current protocol
     Echo("ATRV\r"); //read voltage
 
-    //Set current protocol preset to ISO 15765, 11-bit Tx, 500kbps, DLC=8; High Speed CAN (HS-CAN)
-    GetCommandResponse("STP33\r", 0,0);
-
-    GetCommandResponse("ATSH7E0\r", 0,0); // set the header of transmitted OBD messages
-    GetCommandResponse("ATL0\r", 0,0); // turn off line feed
-    GetCommandResponse("ATE0\r", 0,0); //Echo off
-    GetCommandResponse("ATS0\r", 0,0); //Turn off spaces on OBD responses
-    GetCommandResponse("STCSEGR1\r", 0,0); //Disable PCI bytes
+    SetupDevice();
 }
 
 
@@ -562,6 +572,7 @@ int main( int argc, char *argv[] )
 
     clearDTCs = listDTCs = 0;
     DeviceErrors = 0;
+    CheckBus = FALSE;
     pcmName = NULL;
 
     while((option = getopt(argc, argv, "cdls:")) != -1)
@@ -1141,6 +1152,21 @@ int main( int argc, char *argv[] )
         {
             StatusPrint("[CAN ERRORS] = %i", CAN_Errors);
             PlaySound(&Beep);
+        }
+
+        if (CheckBus)
+        {
+            CheckBus = FALSE;
+
+            GetCommandResponse("ATCS\r", buffer, 100);
+            removeCharFromStr(buffer, '>');
+
+            if (strncmp(buffer+2, "OFF", 3) == 0)
+            {
+                StatusPrint("BUS OFF, Resetting...");
+                GetCommandResponse("STPC\r", 0,0); // close protocol
+                SetupDevice(); //Re-open protocol
+            }
         }
 
         if (DeviceErrors)
