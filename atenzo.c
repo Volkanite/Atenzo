@@ -424,7 +424,37 @@ void InitializeDevice()
     Echo("STI\r"); //Print firmware ID string
     Echo("STDI\r"); //Print device hardware ID string
     Echo("ATDP\r"); //describe current protocol
+    Echo("ATCS\r");
     Echo("ATRV\r"); //read voltage
+
+    //Set current protocol preset to ISO 15765, 11-bit Tx, 500kbps, DLC=8; High Speed CAN (HS-CAN)
+    GetCommandResponse("STP33\r", 0,0);
+
+    GetCommandResponse("ATSH7E0\r", 0,0); // set the header of transmitted OBD messages
+    GetCommandResponse("ATL0\r", 0,0); // turn off line feed
+    GetCommandResponse("ATE0\r", 0,0); //Echo off
+    GetCommandResponse("ATS0\r", 0,0); //Turn off spaces on OBD responses
+    GetCommandResponse("STCSEGR1\r", 0,0); //Disable PCI bytes
+}
+
+
+void InitializeDeviceMini()
+{
+    // Reboot device to flush any bad settings
+    /*Send("ATWS\r",0); //soft reset
+    //Send("ATZ\r"); //hard reset
+
+    sleep(1);
+
+    Echo("ATL1\r"); // turn on line feed
+    Echo("ATE1\r");//Echo on
+
+    Echo("ATI\r"); //identify
+    Echo("STI\r"); //Print firmware ID string
+    Echo("STDI\r"); //Print device hardware ID string
+    Echo("ATDP\r"); //describe current protocol
+    Echo("ATCS\r");
+    Echo("ATRV\r"); //read voltage*/
 
     //Set current protocol preset to ISO 15765, 11-bit Tx, 500kbps, DLC=8; High Speed CAN (HS-CAN)
     GetCommandResponse("STP33\r", 0,0);
@@ -1126,7 +1156,7 @@ int main( int argc, char *argv[] )
         //Print voltage
         GetCommandResponse("ATRV\r", buffer, 100);
         removeCharFromStr(buffer, '>');
-        PrintToScreen(voltage_y-2, buffer);
+        //PrintToScreen(voltage_y-2, buffer);
 
         strEnd = NULL;
         voltage = strtof(buffer, &strEnd);
@@ -1134,6 +1164,21 @@ int main( int argc, char *argv[] )
         if (strEnd == buffer)
         {
             DeviceErrors++;
+        }
+
+        GetCommandResponse("ATCS\r", buffer, 100);
+        removeCharFromStr(buffer, '>');
+        
+        
+        if (strncmp(buffer+2, "OFF", 3) == 0)
+        {
+            PrintToScreen(voltage_y-2, "you killed bigbuff!");
+            //InitializeDeviceMini();
+            GetCommandResponse("STPC\r", 0,0);
+        }
+        else
+        {
+            PrintToScreen(voltage_y-2, buffer);
         }
 
         //Handle CAN errors
