@@ -100,7 +100,7 @@ DTC DiagnosticTroubleCodes[6666];
 #define FAN_CTRL_LO         90
 #define ECT_TFT_TEMP_CRIT   100
 
-#define CAN_ERROR_LIMIT 888
+#define CAN_ERROR_LIMIT 1111
 #define ALARM_DTC       TRUE
 
 
@@ -1148,7 +1148,7 @@ int main( int argc, char *argv[] )
         }
 
         //Handle CAN errors
-        if (CAN_Errors > CAN_ERROR_LIMIT && voltage > 13.0)
+        if (CAN_Errors > CAN_ERROR_LIMIT && voltage > 13.1)
         {
             StatusPrint("[CAN ERRORS] = %i", CAN_Errors);
             PlaySound(&Beep);
