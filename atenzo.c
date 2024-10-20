@@ -1165,7 +1165,7 @@ int main( int argc, char *argv[] )
             {
                 StatusPrint("BUS OFF, Resetting...");
                 GetCommandResponse("STPC\r", 0,0); // close protocol
-                SetupDevice(); //Re-open protocol
+                //SetupDevice(); //Re-open protocol
             }
         }
 
