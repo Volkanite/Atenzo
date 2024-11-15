@@ -548,6 +548,22 @@ void LoadDiagnosticTroubleCodes()
 }
 
 
+void getcpd( char* Buffer, size_t Length )
+{
+    char path[260];
+    char *slash;
+
+    snprintf(path, 260, "/proc/%d/exe", getpid());
+    readlink(path, Buffer, Length);
+
+    // optional, trim file name from path
+    slash = strrchr(Buffer, '/');
+    
+    if (slash)
+        *slash = '\0';
+}
+
+
 int main( int argc, char *argv[] )
 {
     int max_x, max_y, voltage_y;
@@ -569,6 +585,8 @@ int main( int argc, char *argv[] )
     float voltage;
     char* strEnd;
     char* pcmName;
+    char processDirectory[260];
+    char workingDirectory[260];
 
     clearDTCs = listDTCs = 0;
     DeviceErrors = 0;
@@ -602,6 +620,23 @@ int main( int argc, char *argv[] )
             }   
             break;
         }
+    }
+
+    getcpd(processDirectory, 260);
+    getcwd(workingDirectory, 260);
+
+    // this program needs to access sound files that should 
+    // be stored in the same directory the process was started from    
+    if (strcmp(processDirectory, workingDirectory) != 0)
+    {
+        printf("process directory: %s\n", processDirectory);
+        printf("working directory: %s\n", workingDirectory);
+
+        printf("setting working directory to process directory...\n");
+        chdir(processDirectory);
+        
+        getcwd(workingDirectory, 260);
+        printf("new working directory: %s\n", workingDirectory);
     }
 
     Device = open("/dev/ttyUSB0", O_RDWR);
