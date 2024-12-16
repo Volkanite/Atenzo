@@ -799,7 +799,7 @@ int main( int argc, char *argv[] )
         {"TR",0,2},
         {"TP","%",Type_Float},
         {"DR",0,Type_Float},
-        {"LTFT",0,Type_Float,1,-15.00f},
+        {"LTFT",0,Type_Float,1,-14.00f},
         {"STFT",0,Type_Float},
         {"MAF","g/s",Type_Float},
         {"FSS", 0,3},
