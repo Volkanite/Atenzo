@@ -573,7 +573,7 @@ void ABS_Open()
 }
 
 
-void PrintCodes()
+void PrintCodes( unsigned short* DTCs, unsigned int nDTCs, unsigned int BufferLength )
 {
     static int inited = FALSE;
 
@@ -583,8 +583,7 @@ void PrintCodes()
         inited = TRUE;
     }
     
-
-    for (int i = 0; i < nDTCs && i < sizeof(DTCs)/sizeof(DTCs[0]); i++)
+    for (unsigned int i = 0; i < nDTCs && i < BufferLength; i++)
     {
         DTC* dtc;
 
@@ -771,14 +770,13 @@ int main( int argc, char *argv[] )
     {
         ushort DTCs[8];
         unsigned int nDTCs;
-        //mxml_node_t *topNode, *currentNode;
-        //int codesFile;
-        //int i;
+        unsigned int maxDTCs;
 
         InitializeDevice();
 
         memset(DTCs, 0, sizeof(DTCs));
 
+        maxDTCs = sizeof(DTCs)/sizeof(DTCs[0]);
         nDTCs = GetDiagnosticTroubleCodes(DTCs);
 
         if (!nDTCs)
@@ -787,7 +785,7 @@ int main( int argc, char *argv[] )
         }
         else
         {
-            PrintCodes();
+            PrintCodes(DTCs, nDTCs, maxDTCs);
         }
 
         // ABS codes
@@ -801,7 +799,7 @@ int main( int argc, char *argv[] )
         }
         else
         {
-            PrintCodes();
+            PrintCodes(DTCs, nDTCs, maxDTCs);
         }
 
         return 0;
