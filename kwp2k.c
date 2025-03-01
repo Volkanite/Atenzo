@@ -2,11 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef unsigned char byte;
+#include "atenzo.h"
 
-long GetCommandResponse32(long Command);
-long long GetCommandResponse64(long long Command);
-void GetCommandResponse(char* Command, char* buff, int BufferLength);
+
+typedef unsigned char byte;
 
 
 byte GetByte( unsigned long long Value, int BytePosition, int NumberOfBytes )

@@ -10,6 +10,7 @@
 #include <time.h>
 
 #include "atenza.h"
+#include "abs.h"
 #include "sound.h"
 #include "./mxml/mxml.h"
 
@@ -565,6 +566,40 @@ void getcpd( char* Buffer, size_t Length )
 }
 
 
+void ABS_Open( int Section )
+{
+    GetCommandResponse("STP22\r", 0,0); //Set current protocol preset to ISO 9141-2, 10.4kbps
+    GetCommandResponse("STPO\r",0,0); // Open protocol
+
+    if (Section == 0)
+        GetCommandResponse("ATSH6428F5\r", 0,0); // set header to ABS module - Info
+    else if (Section == 1)
+        GetCommandResponse("ATSH4428F5\r", 0,0); // set header to ABS module - DTCs
+}
+
+
+void PrintCodes( unsigned short* DTCs, unsigned int nDTCs, unsigned int BufferLength )
+{
+    static int inited = FALSE;
+
+    if (!inited)
+    {
+        LoadDiagnosticTroubleCodes();
+        inited = TRUE;
+    }
+    
+    for (unsigned int i = 0; i < nDTCs && i < BufferLength; i++)
+    {
+        DTC* dtc;
+
+        dtc = GetDiagnosticTroubleCodeDescription(DTCs[i]);
+        
+        if (dtc)
+            printf("%s %s\n", dtc->Code, dtc->Description);
+    }
+}
+
+
 int main( int argc, char *argv[] )
 {
     int max_x, max_y, voltage_y;
@@ -740,32 +775,36 @@ int main( int argc, char *argv[] )
     {
         ushort DTCs[8];
         unsigned int nDTCs;
-        //mxml_node_t *topNode, *currentNode;
-        //int codesFile;
-        //int i;
+        unsigned int maxDTCs;
 
         InitializeDevice();
 
         memset(DTCs, 0, sizeof(DTCs));
 
+        maxDTCs = sizeof(DTCs)/sizeof(DTCs[0]);
         nDTCs = GetDiagnosticTroubleCodes(DTCs);
 
         if (!nDTCs)
         {
-            printf("No DTCs found...\n");
-            return 0;
+            printf("[ECU] No DTCs found...\n");
+        }
+        else
+        {
+            PrintCodes(DTCs, nDTCs, maxDTCs);
         }
 
-        LoadDiagnosticTroubleCodes();
+        // ABS codes
+        ABS_Open(1);
+        
+        nDTCs = ABS_GetDiagnosticTroubleCodes(DTCs);
 
-        for (int i = 0; i < nDTCs && i < sizeof(DTCs)/sizeof(DTCs[0]); i++)
+        if (!nDTCs)
         {
-            DTC* dtc;
-
-            dtc = GetDiagnosticTroubleCodeDescription(DTCs[i]);
-
-            if (dtc)
-                printf("%s %s\n", dtc->Code, dtc->Description);
+            printf("[ABS] No DTCs found...\n");
+        }
+        else
+        {
+            PrintCodes(DTCs, nDTCs, maxDTCs);
         }
 
         return 0;
@@ -871,9 +910,8 @@ int main( int argc, char *argv[] )
         /* ABS */
         if (ABS)
         {
-            GetCommandResponse("STP22\r", 0,0); //Set current protocol preset to ISO 9141-2, 10.4kbps
-            GetCommandResponse("STPO\r",0,0); // Open protocol
-            GetCommandResponse("ATSH6428F5\r", 0,0); // set header to ABS module
+            // Open ABS module
+            ABS_Open(0);
 
             ParameterIds[WSPD].Value = ABS_GetWheelSpeed(WSPD_REAR_LEFT);
             ParameterIds[WSPD].Value += ABS_GetWheelSpeed(WSPD_REAR_RIGHT);
