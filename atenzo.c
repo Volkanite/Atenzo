@@ -565,6 +565,37 @@ void getcpd( char* Buffer, size_t Length )
 }
 
 
+void ABS_Open()
+{
+    GetCommandResponse("STP22\r", 0,0); //Set current protocol preset to ISO 9141-2, 10.4kbps
+    GetCommandResponse("STPO\r",0,0); // Open protocol
+    GetCommandResponse("ATSH6428F5\r", 0,0); // set header to ABS module
+}
+
+
+void PrintCodes()
+{
+    static int inited = FALSE;
+
+    if (!inited)
+    {
+        LoadDiagnosticTroubleCodes();
+        inited = TRUE;
+    }
+    
+
+    for (int i = 0; i < nDTCs && i < sizeof(DTCs)/sizeof(DTCs[0]); i++)
+    {
+        DTC* dtc;
+
+        dtc = GetDiagnosticTroubleCodeDescription(DTCs[i]);
+        
+        if (dtc)
+            printf("%s %s\n", dtc->Code, dtc->Description);
+    }
+}
+
+
 int main( int argc, char *argv[] )
 {
     int max_x, max_y, voltage_y;
@@ -752,20 +783,25 @@ int main( int argc, char *argv[] )
 
         if (!nDTCs)
         {
-            printf("No DTCs found...\n");
-            return 0;
+            printf("[ECU] No DTCs found...\n");
+        }
+        else
+        {
+            PrintCodes();
         }
 
-        LoadDiagnosticTroubleCodes();
+        // ABS codes
+        ABS_Open();
+        
+        nDTCs = GetDiagnosticTroubleCodes(DTCs);
 
-        for (int i = 0; i < nDTCs && i < sizeof(DTCs)/sizeof(DTCs[0]); i++)
+        if (!nDTCs)
         {
-            DTC* dtc;
-
-            dtc = GetDiagnosticTroubleCodeDescription(DTCs[i]);
-
-            if (dtc)
-                printf("%s %s\n", dtc->Code, dtc->Description);
+            printf("[ABS] No DTCs found...\n");
+        }
+        else
+        {
+            PrintCodes();
         }
 
         return 0;
@@ -871,9 +907,8 @@ int main( int argc, char *argv[] )
         /* ABS */
         if (ABS)
         {
-            GetCommandResponse("STP22\r", 0,0); //Set current protocol preset to ISO 9141-2, 10.4kbps
-            GetCommandResponse("STPO\r",0,0); // Open protocol
-            GetCommandResponse("ATSH6428F5\r", 0,0); // set header to ABS module
+            // Open ABS module
+            ABS_Open();
 
             ParameterIds[WSPD].Value = ABS_GetWheelSpeed(WSPD_REAR_LEFT);
             ParameterIds[WSPD].Value += ABS_GetWheelSpeed(WSPD_REAR_RIGHT);
