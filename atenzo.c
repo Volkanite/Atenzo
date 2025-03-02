@@ -565,11 +565,15 @@ void getcpd( char* Buffer, size_t Length )
 }
 
 
-void ABS_Open()
+void ABS_Open( int Section )
 {
     GetCommandResponse("STP22\r", 0,0); //Set current protocol preset to ISO 9141-2, 10.4kbps
     GetCommandResponse("STPO\r",0,0); // Open protocol
-    GetCommandResponse("ATSH6428F5\r", 0,0); // set header to ABS module
+
+    if (Section == 0)
+        GetCommandResponse("ATSH6428F5\r", 0,0); // set header to ABS module - Info
+    else if (Section == 1)
+        GetCommandResponse("ATSH4428F5\r", 0,0); // set header to ABS module - DTCs
 }
 
 
@@ -789,7 +793,7 @@ int main( int argc, char *argv[] )
         }
 
         // ABS codes
-        ABS_Open();
+        ABS_Open(1);
         
         nDTCs = GetDiagnosticTroubleCodes(DTCs);
 
@@ -906,7 +910,7 @@ int main( int argc, char *argv[] )
         if (ABS)
         {
             // Open ABS module
-            ABS_Open();
+            ABS_Open(0);
 
             ParameterIds[WSPD].Value = ABS_GetWheelSpeed(WSPD_REAR_LEFT);
             ParameterIds[WSPD].Value += ABS_GetWheelSpeed(WSPD_REAR_RIGHT);
