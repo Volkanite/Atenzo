@@ -10,6 +10,7 @@
 #include <time.h>
 
 #include "atenza.h"
+#include "abs.h"
 #include "sound.h"
 #include "./mxml/mxml.h"
 
