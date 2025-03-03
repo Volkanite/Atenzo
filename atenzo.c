@@ -13,6 +13,7 @@
 #include "abs.h"
 #include "sound.h"
 #include "./mxml/mxml.h"
+#include "config.h"
 
 
 typedef struct _PID PID;
@@ -96,10 +97,6 @@ int64_t EngineStartTime;
 PID* ParameterIdsBase;
 SOUND_FILE Beep, Ding, Radar;
 DTC DiagnosticTroubleCodes[6666];
-
-#define FAN_CTRL_HI         95
-#define FAN_CTRL_LO         90
-#define ECT_TFT_TEMP_CRIT   100
 
 #define CAN_ERROR_LIMIT 1111
 #define ALARM_DTC       TRUE
