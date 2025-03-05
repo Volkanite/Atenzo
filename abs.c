@@ -27,6 +27,16 @@ int ABS_GetWheelSpeed( unsigned char Wheel )
 }
 
 
+int ABS_ClearDiagnosticTroubleCodes()
+{
+    char buffer[100];
+
+    GetCommandResponse("14\r", buffer, 100);
+
+    return 0;
+}
+
+
 int ABS_GetDiagnosticTroubleCodes( unsigned short* ArrayOfDTCs )
 {
     int iCommand, statusOfDTCRequest, nBytes, nDTCs;

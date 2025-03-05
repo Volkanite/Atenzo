@@ -613,8 +613,7 @@ int main( int argc, char *argv[] )
     int neutralDTC;
     int pinged;
     int option;
-    int clearDTCs;
-    int listDTCs;
+    int clearDTCs, clearAllDTCs, listDTCs;
     float voltage;
     char* strEnd;
     char* pcmName;
@@ -630,6 +629,8 @@ int main( int argc, char *argv[] )
     {
         switch (option)
         {
+            case 'C':
+                clearAllDTCs = 1;
             case 'c':
                 clearDTCs = 1;
                 break;
@@ -766,6 +767,13 @@ int main( int argc, char *argv[] )
         printf("Clearing DTCs..\n");
         InitializeDevice();
         ClearDiagnosticTroubleCodes();
+
+        if (clearAllDTCs)
+        {
+            ABS_Open(1);
+            ABS_ClearDiagnosticTroubleCodes();
+        }
+
         return 0;
     }
     else if (listDTCs)
