@@ -597,6 +597,20 @@ void PrintCodes( unsigned short* DTCs, unsigned int nDTCs, unsigned int BufferLe
 }
 
 
+int SetFanStateEx( int Index, int State )
+{
+    if (!UnlockActuation())
+    {
+        StatusPrint("UnlockActuation() failed! Fan setting failed!");
+        return 0;
+    }
+
+    StatusPrint("turning %s FAN%u..", State ? "on":"off", Index+1);
+
+    return SetFanState(Index, State);
+}
+
+
 int main( int argc, char *argv[] )
 {
     int max_x, max_y, voltage_y;
@@ -613,6 +627,7 @@ int main( int argc, char *argv[] )
     int neutralDTC;
     int pinged;
     int option;
+    int key;
     int clearDTCs, clearAllDTCs, listDTCs;
     float voltage;
     char* strEnd;
@@ -827,6 +842,8 @@ int main( int argc, char *argv[] )
         printf("failed to initialize sound file: radar.wav\n");
 
     initscr(); //init ncurses
+    nodelay(stdscr, TRUE); // Enable non-blocking input
+    
     InitializeDevice();
     LoadDiagnosticTroubleCodes();
 
@@ -1027,32 +1044,15 @@ int main( int argc, char *argv[] )
             {
                 manualFanControl = 1;
 
-                if (UnlockActuation())
-                {
-                    StatusPrint("turning on FAN1..");
-
-                    if (SetFanState(0,1))
-                        PlaySound(&Ding);
-                }
-                else
-                {
-                    StatusPrint("UnlockActuation() failed! Fan setting failed!");
-                }
+                if (SetFanStateEx(0,1))
+                    PlaySound(&Ding);
             }
 
             if (temp > ECT_TFT_TEMP_CRIT && !fan2)
             {
                 manualFanControl = 1;
 
-                if (UnlockActuation())
-                {
-                    StatusPrint("turning on FAN2..");
-                    SetFanState(1,1);
-                }
-                else
-                {
-                    StatusPrint("UnlockActuation() failed! Fan setting failed!");
-                }
+                SetFanStateEx(1,1);
             }
         }
 
@@ -1071,11 +1071,10 @@ int main( int argc, char *argv[] )
 
             if (temp < tempLo && fan1)
             {
-                StatusPrint("turning off FAN..");
-                SetFanState(0,0);
+                SetFanStateEx(0,0);
 
                 if (fan2)
-                    SetFanState(1,0);
+                    SetFanStateEx(1,0);
             }
         }
 
@@ -1319,6 +1318,17 @@ int main( int argc, char *argv[] )
                 attroff(COLOR_PAIR(1));
 
             lineLen += pidLen + 2;
+        }
+
+        key = getch();
+
+        if (key != ERR)
+        {
+            if (key == '1')
+                SetFanStateEx(0, !fan1);
+
+            if (key == '2')
+                SetFanStateEx(1, !fan2);
         }
 
         refresh();
