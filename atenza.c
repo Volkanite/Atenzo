@@ -139,10 +139,14 @@ int GetFanState( int* Fan1, int* Fan2 )
     if (!response) return 0;
 
     //low speed (both fans)
+    //Right fan (inside car, looking out of windshield)
+    //4-pin
     if (Fan1)
         *Fan1 = (response >> 2) & 1;
 
     //high speed (one fan)
+    //Left fan (inside car, looking out of windshield)
+    //2-pin
     if (Fan2)
         *Fan2 = (response >> 3) & 1;
 
