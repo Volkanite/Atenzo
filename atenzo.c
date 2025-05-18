@@ -9,7 +9,7 @@
 #include <sys/time.h>
 #include <time.h>
 
-#include "atenza.h"
+#include "pcm.h"
 #include "abs.h"
 #include "sound.h"
 #include "./mxml/mxml.h"
