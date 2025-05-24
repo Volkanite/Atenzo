@@ -78,8 +78,6 @@ typedef enum _PID_INDEX
 
 } PID_INDEX;
 
-#define TRUE 1
-#define FALSE 0
 
 #define MAX(a,b) ((a) > (b) ? a : b)
 #define MIN(a,b) ((a) < (b) ? a : b)
@@ -100,7 +98,6 @@ DTC DiagnosticTroubleCodes[6666];
 
 #define CAN_ERROR_LIMIT 1111
 #define ALARM_DTC       TRUE
-#define ALARM_LTFT      TRUE
 
 
 char * removeCharFromStr(char *string, char character);
@@ -861,7 +858,7 @@ int main( int argc, char *argv[] )
         {"TR",0,2},
         {"TP","%",Type_Float},
         {"DR",0,Type_Float},
-        {"LTFT",0,Type_Float,ALARM_LTFT,-14.00f},
+        {"LTFT",0,Type_Float,ALARM_LTFT,LTFT_CRIT},
         {"STFT",0,Type_Float},
         {"MAF","g/s",Type_Float},
         {"FSS", 0,3},
