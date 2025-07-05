@@ -403,6 +403,22 @@ int IsAlternatorVoltageGood( PID* ParameterIdsBasePtr )
 }
 
 
+int IsAlternatorDutyCycleGood( PID* ParameterIdsBasePtr )
+{
+    int64_t currentTime;
+
+    currentTime = current_timestamp();
+
+    if (currentTime - EngineStartTime < 10000)
+        return 1;
+
+    if (ParameterIdsBasePtr[ALTF].Value2 > 99.0f)
+        return 0;
+
+    return 1;
+}
+
+
 float GetSlopeIntercept( float Input, float Slope, float Intercept )
 {
     return (Input * Slope) + Intercept;
@@ -866,7 +882,7 @@ int main( int argc, char *argv[] )
         {"GR"},
         {"VPWR","V",Type_Float,FALSE,0.0f,IsVoltageGood},
         {"ALTV","V",Type_Float,FALSE,0.0f,IsAlternatorVoltageGood},
-        {"ALTF","%",Type_Float,FALSE,0.0f},
+        {"ALTF","%",Type_Float,FALSE,0.0f,IsAlternatorDutyCycleGood},
         {"WSPD"}
     };
 
