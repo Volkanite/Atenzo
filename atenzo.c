@@ -94,7 +94,13 @@ unsigned char DeviceErrors;
 int64_t EngineStartTime;
 PID* ParameterIdsBase;
 SOUND_FILE Beep, Ding, Radar;
-DTC DiagnosticTroubleCodes[6666];
+
+#define SECTION_PCM 0
+#define SECTION_ABS 1
+#define PCM_CODES_MAX 120
+#define ABS_CODES_MAX 37
+DTC PCM_DiagnosticTroubleCodes[PCM_CODES_MAX];
+DTC ABS_DiagnosticTroubleCodes[ABS_CODES_MAX];
 
 #define CAN_ERROR_LIMIT 1111
 #define ALARM_DTC       TRUE
@@ -484,19 +490,26 @@ char numericChar(uint8_t c)
 }
 
 
-DTC* GetDiagnosticTroubleCodeDescription( ushort Code )
+void FormatDiagnosticTroubleCode ( ushort Code, char* Buffer )
 {
-    char code[6];
     char firstDtc[4] = {'P', 'C', 'B', 'U'};
 
-    code[0] = firstDtc[(Code & 0xC000) >> 14];
-    code[1] = numericChar((Code & 0x3000) >> 12);
-    code[2] = numericChar((Code & 0x0F00) >> 8);
-    code[3] = numericChar((Code & 0x00F0) >> 4);
-    code[4] = numericChar(Code & 0x000F);
-    code[5] = '\0';
+    Buffer[0] = firstDtc[(Code & 0xC000) >> 14];
+    Buffer[1] = numericChar((Code & 0x3000) >> 12);
+    Buffer[2] = numericChar((Code & 0x0F00) >> 8);
+    Buffer[3] = numericChar((Code & 0x00F0) >> 4);
+    Buffer[4] = numericChar(Code & 0x000F);
+    Buffer[5] = '\0';
+}
 
-    for (int i = 0; i < sizeof(DiagnosticTroubleCodes)/sizeof(DiagnosticTroubleCodes[0]); i++)
+
+DTC* GetDiagnosticTroubleCodeDescription( ushort Code, DTC* DiagnosticTroubleCodes, int Len )
+{
+    char code[6];
+    
+    FormatDiagnosticTroubleCode(Code, code);
+
+    for (int i = 0; i < Len; i++)
     {
         if (strncmp(code, DiagnosticTroubleCodes[i].Code, 5) == 0)
         {
@@ -508,7 +521,7 @@ DTC* GetDiagnosticTroubleCodeDescription( ushort Code )
 }
 
 
-void LoadDiagnosticTroubleCodes()
+void LoadDiagnosticTroubleCodes( char* FileName, DTC* DiagnosticTroubleCodes )
 {
     //ushort DTCs[8];
     //unsigned int nDTCs;
@@ -516,7 +529,7 @@ void LoadDiagnosticTroubleCodes()
     int codesFile;
     int i;
 
-    codesFile = open("./codes.xml", O_RDWR);
+    codesFile = open(FileName, O_RDWR);
     topNode = mxmlLoadFd(NULL, codesFile, NULL);
 
     if (!topNode)
@@ -588,13 +601,29 @@ void ABS_Open( int Section )
 }
 
 
-void PrintCodes( unsigned short* DTCs, unsigned int nDTCs, unsigned int BufferLength )
+void PrintCodes( unsigned short* DTCs, unsigned int nDTCs, unsigned int BufferLength, int Section )
 {
     static int inited = FALSE;
+    char* database;
+    DTC* diagnosticTroubleCodes;
+    int len;
+
+    if (Section == 0) //PCM
+    {
+        database = "./codes_pcm.xml";
+        diagnosticTroubleCodes = PCM_DiagnosticTroubleCodes;
+        len = PCM_CODES_MAX;
+    }
+    else if (Section == 1) //ABS
+    {
+        database = "./codes_abs.xml";
+        diagnosticTroubleCodes = ABS_DiagnosticTroubleCodes;
+        len = ABS_CODES_MAX;
+    }
 
     if (!inited)
     {
-        LoadDiagnosticTroubleCodes();
+        LoadDiagnosticTroubleCodes(database, diagnosticTroubleCodes);
         inited = TRUE;
     }
     
@@ -602,10 +631,20 @@ void PrintCodes( unsigned short* DTCs, unsigned int nDTCs, unsigned int BufferLe
     {
         DTC* dtc;
 
-        dtc = GetDiagnosticTroubleCodeDescription(DTCs[i]);
+        dtc = GetDiagnosticTroubleCodeDescription(DTCs[i], diagnosticTroubleCodes, len);
         
         if (dtc)
+        {
             printf("%s %s\n", dtc->Code, dtc->Description);
+        }
+        else
+        {
+            char code[6];
+            
+            FormatDiagnosticTroubleCode(DTCs[i], code);
+            printf("%s Unknown DTC!\n", code);
+        }
+            
     }
 }
 
@@ -823,7 +862,7 @@ int main( int argc, char *argv[] )
         }
         else
         {
-            PrintCodes(DTCs, nDTCs, maxDTCs);
+            PrintCodes(DTCs, nDTCs, maxDTCs, SECTION_PCM);
         }
 
         // ABS codes
@@ -837,7 +876,7 @@ int main( int argc, char *argv[] )
         }
         else
         {
-            PrintCodes(DTCs, nDTCs, maxDTCs);
+            PrintCodes(DTCs, nDTCs, maxDTCs, SECTION_ABS);
         }
 
         return 0;
@@ -858,7 +897,7 @@ int main( int argc, char *argv[] )
     nodelay(stdscr, TRUE); // Enable non-blocking input
     
     InitializeDevice();
-    LoadDiagnosticTroubleCodes();
+    //LoadDiagnosticTroubleCodes();
 
     PID ParameterIds[] = {
         {"ECT","°C",Type_Int,1,(float)ECT_TFT_TEMP_CRIT},
@@ -1005,21 +1044,27 @@ int main( int argc, char *argv[] )
 
             if(GetDiagnosticTroubleCodes(DTCs))
             {
-                DTC* dtc;
+                //DTC* dtc;
                 strcpy(buffer, "DTCs:");
+                char code[6];
 
                 for (
                   int i = 0;
                   i < ParameterIds[DTC_CNT].Value && i < sizeof(DTCs)/sizeof(DTCs[0]);
                   i++)
                 {
-                    dtc = GetDiagnosticTroubleCodeDescription(DTCs[i]);
+                    /*dtc = GetDiagnosticTroubleCodeDescription(DTCs[i]);
                     
                     if (dtc)
                     {
                         snprintf(buffer2, 150, i?", %s":" %s", dtc->Code);
                         strcat(buffer, buffer2);
-                    }
+                    }*/
+
+                    FormatDiagnosticTroubleCode(DTCs[i], code);
+
+                    snprintf(buffer2, 150, i?", %s":" %s", code);
+                    strcat(buffer, buffer2);
 
                     if (DTCs[i] == 0x500)
                         dtcFound = 1;
