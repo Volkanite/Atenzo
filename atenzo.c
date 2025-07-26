@@ -415,7 +415,7 @@ int IsAlternatorDutyCycleGood( PID* ParameterIdsBasePtr )
 
     currentTime = current_timestamp();
 
-    if (currentTime - EngineStartTime < 10000)
+    if (currentTime - EngineStartTime < 15000)
         return 1;
 
     if (ParameterIdsBasePtr[ALTF].Value2 > 99.0f)
