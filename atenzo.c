@@ -1094,51 +1094,51 @@ int main( int argc, char *argv[] )
 
         prev_dtc_count = ParameterIds[DTC_CNT].Value;
 
-        temp = MAX(ParameterIds[ECT].Value, ParameterIds[TFT].Value);
-
-        //actuation control only works when TR is in 'P' or 'N' (not in gear), hence we check for that below.
-        //TODO: Add PID 'InGear'. This PID should show whether the transmission is in gear or not.
-        //Question: Can the service "WriteMemoryByAddress" (0x3D) be used to change the code in the ECU at runtime
-        //to bypass this 'in-gear' check?
-        if ((ParameterIds[TR].Value == 'P' || ParameterIds[TR].Value == 'N') && IsEngineRunning())
+        if (fanControl != FAN_CONTROL_USER)
         {
-            if (temp > tempHi && !fan1)
+            temp = MAX(ParameterIds[ECT].Value, ParameterIds[TFT].Value);
+
+            //actuation control only works when TR is in 'P' or 'N' (not in gear), hence we check for that below.
+            //TODO: Add PID 'InGear'. This PID should show whether the transmission is in gear or not.
+            //Question: Can the service "WriteMemoryByAddress" (0x3D) be used to change the code in the ECU at runtime
+            //to bypass this 'in-gear' check?
+            if ((ParameterIds[TR].Value == 'P' || ParameterIds[TR].Value == 'N') && IsEngineRunning())
             {
-                if (fanControl != FAN_CONTROL_USER)
+                if (temp > tempHi && !fan1)
+                {
                     fanControl = FAN_CONTROL_PRGM;
 
-                if (SetFanStateEx(0,1))
-                    PlaySound(&Ding);
-            }
+                    if (SetFanStateEx(0,1))
+                        PlaySound(&Ding);
+                }
 
-            if (temp > ECT_TFT_TEMP_CRIT && !fan2)
-            {
-                if (fanControl != FAN_CONTROL_USER)
+                if (temp > ECT_TFT_TEMP_CRIT && !fan2)
+                {
                     fanControl = FAN_CONTROL_PRGM;
-
-                SetFanStateEx(1,1);
-            }
-        }
-
-        if (fanControl == FAN_CONTROL_PRGM)
-        {
-            if (ParameterIds[TR].Value == 'P')
-            {
-                tempHi = FAN_CTRL_HI - 5;
-                tempLo = FAN_CTRL_LO - 5;
-            }
-            else
-            {
-                tempHi = FAN_CTRL_HI;
-                tempLo = FAN_CTRL_LO;
+                    SetFanStateEx(1,1);
+                }
             }
 
-            if (temp < tempLo && fan1)
+            if (fanControl == FAN_CONTROL_PRGM)
             {
-                SetFanStateEx(0,0);
+                if (ParameterIds[TR].Value == 'P')
+                {
+                    tempHi = FAN_CTRL_HI - 5;
+                    tempLo = FAN_CTRL_LO - 5;
+                }
+                else
+                {
+                    tempHi = FAN_CTRL_HI;
+                    tempLo = FAN_CTRL_LO;
+                }
 
-                if (fan2)
-                    SetFanStateEx(1,0);
+                if (temp < tempLo && fan1)
+                {
+                    SetFanStateEx(0,0);
+
+                    if (fan2)
+                        SetFanStateEx(1,0);
+                }
             }
         }
 
@@ -1150,7 +1150,7 @@ int main( int argc, char *argv[] )
             && ParameterIds[BOO].Value == 1
             && ParameterIds[THOP].Value2 > 0.5)
         {
-            int temp;
+            //int temp;
             float slope, intercept;
             float time;
 
