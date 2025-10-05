@@ -105,6 +105,10 @@ DTC ABS_DiagnosticTroubleCodes[ABS_CODES_MAX];
 #define CAN_ERROR_LIMIT 1111
 #define ALARM_DTC       TRUE
 
+#define FAN_CONTROL_CAR     0
+#define FAN_CONTROL_PRGM    1
+#define FAN_CONTROL_USER    2
+
 
 char * removeCharFromStr(char *string, char character);
 void GetClockTime( char* Buffer, struct tm* Time );
@@ -674,7 +678,7 @@ int main( int argc, char *argv[] )
     char buffer[100];
     long long start, delta;
     int timeout, timeoutValue;
-    int manualFanControl, temp, tempHi, tempLo, fan1, fan2;
+    int fanControl, temp, tempHi, tempLo, fan1, fan2;
     int prev_dtc_count;
     int neutralDTC;
     int pinged;
@@ -931,7 +935,7 @@ int main( int argc, char *argv[] )
     EngineStartTime = 0;
     fullPressure = releasePressure = awaitingFullPressure = 0;
     start = delta = timeout = timeoutValue = 0;
-    manualFanControl = 0;
+    fanControl = FAN_CONTROL_CAR;
     prev_dtc_count = 0;
     neutralDTC = 0;
     pinged = FALSE;
@@ -1013,7 +1017,7 @@ int main( int argc, char *argv[] )
             char buffer[100];
             int newline;
 
-            manualFanControl = 0;
+            fanControl = FAN_CONTROL_CAR;
             start = delta = timeout = timeoutValue = 0;
             EngineStartTime = current_timestamp();
             CAN_Errors = 0;
@@ -1100,7 +1104,8 @@ int main( int argc, char *argv[] )
         {
             if (temp > tempHi && !fan1)
             {
-                manualFanControl = 1;
+                if (fanControl != FAN_CONTROL_USER)
+                    fanControl = FAN_CONTROL_PRGM;
 
                 if (SetFanStateEx(0,1))
                     PlaySound(&Ding);
@@ -1108,13 +1113,14 @@ int main( int argc, char *argv[] )
 
             if (temp > ECT_TFT_TEMP_CRIT && !fan2)
             {
-                manualFanControl = 1;
+                if (fanControl != FAN_CONTROL_USER)
+                    fanControl = FAN_CONTROL_PRGM;
 
                 SetFanStateEx(1,1);
             }
         }
 
-        if (manualFanControl)
+        if (fanControl == FAN_CONTROL_PRGM)
         {
             if (ParameterIds[TR].Value == 'P')
             {
@@ -1383,10 +1389,16 @@ int main( int argc, char *argv[] )
         if (key != ERR)
         {
             if (key == '1')
+            {
+                fanControl = FAN_CONTROL_USER;
                 SetFanStateEx(0, !fan1);
-
+            }
+                
             if (key == '2')
+            {
+                fanControl = FAN_CONTROL_USER;
                 SetFanStateEx(1, !fan2);
+            }
         }
 
         refresh();
