@@ -6,6 +6,7 @@
 
 
 typedef unsigned char byte;
+long long GetCommandResponseAsLongLong(char* Command);
 
 
 byte GetByte( unsigned long long Value, int BytePosition, int NumberOfBytes )
@@ -38,6 +39,39 @@ int ECUReset( byte ResetMode )
     response = GetCommandResponse32(request);
 
     if ((response >> 8) != 0x51)
+        return 0;
+
+    return 1;
+}
+
+
+int RequestSecuritySeed()
+{
+    long long response;
+    int seed;
+
+    response = GetCommandResponseAsLongLong("2701\r");
+
+    if ((response & 0xff00000000) >> 32 != 0x67)
+        return 0;
+
+    seed = (response & 0x0000ffffff);
+
+    return seed;
+}
+
+
+int AuthenticateSecurityKey( long long Key )
+{
+    long long response, key;
+
+    key = Key;
+    key += 0x2702000000;
+
+    //send key
+    response = GetCommandResponse64(key);
+
+    if ((response & 0xff00) >> 8 != 0x67)
         return 0;
 
     return 1;

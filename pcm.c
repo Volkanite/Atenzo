@@ -44,29 +44,17 @@ int GetDiagnosticTroubleCodes( unsigned short* ArrayOfDTCs )
 
 int AuthenticateSession()
 {
-    long long response, key;
     int seed;
+    int long long key;
 
-    response = GetCommandResponseAsLongLong("2701\r");
-
-    if ((response & 0xff00000000) >> 32 != 0x67)
-        return 0;
-
-    seed = (response & 0x0000ffffff);
+    seed = RequestSecuritySeed();
 
     if (seed == 0)
         return 1; //already unlocked
 
     key = GetKeyFromSeed(seed);
-    key += 0x2702000000;
 
-    //send key
-    response = GetCommandResponse64(key);
-
-    if ((response & 0xff00) >> 8 != 0x67)
-        return 0;
-
-    return 1;
+    return AuthenticateSecurityKey(key);
 }
 
 

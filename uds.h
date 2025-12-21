@@ -29,6 +29,8 @@ typedef enum
 
 
 int ECUReset(byte ResetMode);
+int RequestSecuritySeed();
+int AuthenticateSecurityKey(long long Key);
 int ClearDiagnosticInformation(unsigned short GroupOfDiagnosticInformation);
 int ReadDiagnosticTroubleCodesByStatus(byte StatusOfDTCRequest, unsigned short GroupOfDTC, unsigned short* ArrayOfDTCs);
 int ReadDataByCommonIdentifier32(short RecordCommonIdentifier);
