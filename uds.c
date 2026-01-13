@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "atenzo.h"
+#include "uds.h"
 
 
 typedef unsigned char byte;
@@ -39,6 +40,20 @@ int ECUReset( byte ResetMode )
     response = GetCommandResponse32(request);
 
     if ((response >> 8) != 0x51)
+        return 0;
+
+    return 1;
+}
+
+
+int RequestSession( int SessionId )
+{
+    int response, command;
+
+    command = 0x1000 + SessionId;
+    response = GetCommandResponse32(command);
+
+    if ((response & 0xff00) >> 8 != 0x50)
         return 0;
 
     return 1;
@@ -137,7 +152,7 @@ int ReadDiagnosticTroubleCodesByStatus(
 }
 
 
-int ReadDataByCommonIdentifier32( short RecordCommonIdentifier )
+/*int ReadDataByCommonIdentifier32( short RecordCommonIdentifier )
 {
     int response, command;
 
@@ -163,6 +178,44 @@ int ReadDataByCommonIdentifier64( short RecordCommonIdentifier )
         return 0;
 
     return (response & 0xffff);
+}*/
+
+
+int ReadDataByCommonIdentifier( short RecordCommonIdentifier )
+{
+    int command, len;
+
+    command = (UDS_REQ_READBYID << 16) + (RecordCommonIdentifier);
+
+    char buffer[100];
+    char request[10];
+
+    snprintf(request, 10, "%X\r", command);
+
+    len = GetCommandResponse(request, buffer, 100);
+
+    if (len <= 8) //8 hexadecimal numbers (32-bits)
+    {
+        int response;
+
+        response = strtol(buffer, NULL, 16);
+
+        if ((response & 0xff000000) >> 24 != 0x62)
+            return 0;
+
+        return (response & 0x000000ff);
+    }
+    else
+    {
+        long long response;
+
+        response = strtoll(buffer, NULL, 16);
+
+        if ((response & 0xff00000000) >> 32 != 0x62)
+            return 0;
+
+        return (response & 0xffff);
+    }
 }
 
 

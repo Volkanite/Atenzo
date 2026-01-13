@@ -29,10 +29,14 @@ typedef enum
 
 
 int ECUReset(byte ResetMode);
+int RequestSession(int SessionId);
 int RequestSecuritySeed();
 int AuthenticateSecurityKey(long long Key);
 int ClearDiagnosticInformation(unsigned short GroupOfDiagnosticInformation);
 int ReadDiagnosticTroubleCodesByStatus(byte StatusOfDTCRequest, unsigned short GroupOfDTC, unsigned short* ArrayOfDTCs);
-int ReadDataByCommonIdentifier32(short RecordCommonIdentifier);
-int ReadDataByCommonIdentifier64(short RecordCommonIdentifier);
+//int ReadDataByCommonIdentifier32(short RecordCommonIdentifier);
+//int ReadDataByCommonIdentifier64(short RecordCommonIdentifier);
+int ReadDataByCommonIdentifier(short RecordCommonIdentifier);
 int InputOutputControlByCommonIdentifier(short InputOutputCommonIdentifier, byte InputOutputControlParameter, byte ControlState);
+
+#define UDS_REQ_READBYID 0x22

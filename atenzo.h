@@ -7,4 +7,4 @@ long long current_timestamp();
 
 long GetCommandResponse32(unsigned int Command);
 long long GetCommandResponse64(long long Command);
-void GetCommandResponse(char* Command, char* buff, int BufferLength);
+int GetCommandResponse(char* Command, char* buff, int BufferLength);

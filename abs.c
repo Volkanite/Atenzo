@@ -19,8 +19,8 @@ int ABS_GetWheelSpeed( unsigned char Wheel )
     {
         case WSPD_FRONT_LEFT:   return 0;
         case WSPD_FRONT_RIGHT:  return 0;
-        case WSPD_REAR_LEFT:    return ReadDataByCommonIdentifier32(0x398A);
-        case WSPD_REAR_RIGHT:   return ReadDataByCommonIdentifier32(0x398B);
+        case WSPD_REAR_LEFT:    return ReadDataByCommonIdentifier(0x398A);
+        case WSPD_REAR_RIGHT:   return ReadDataByCommonIdentifier(0x398B);
 
         default: return 0;
     }

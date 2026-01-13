@@ -12,15 +12,7 @@ int GetKeyFromSeed(int Seed);
 
 int StartDiagnosticSession( int SessionId )
 {
-    int response, command;
-
-    command = 0x1000 + SessionId;
-    response = GetCommandResponse32(command);
-
-    if ((response & 0xff00) >> 8 != 0x50)
-        return 0;
-
-    return 1;
+   return RequestSession(SessionId);
 }
 
 
@@ -60,13 +52,13 @@ int AuthenticateSession()
 
 float GetAlternatorDutyCycle()
 {
-    return (float)ReadDataByCommonIdentifier64(0x16E8) * 0.003051757812f;
+    return (float)ReadDataByCommonIdentifier(0x16E8) * 0.003051757812f;
 }
 
 
 float GetAlternatorOutputVoltage()
 {
-    return (float)ReadDataByCommonIdentifier64(0x16E9) * 0.125f;
+    return (float)ReadDataByCommonIdentifier(0x16E9) * 0.125f;
 }
 
 
@@ -74,7 +66,7 @@ int GetBrakeSwitchState()
 {
     int state;
 
-	  state = ReadDataByCommonIdentifier32(0x1101);
+	  state = ReadDataByCommonIdentifier(0x1101);
 
     if (!state) return 0;
 
@@ -84,13 +76,13 @@ int GetBrakeSwitchState()
 
 float GetControlModuleVoltage()
 {
-    return (float)ReadDataByCommonIdentifier64(0x0042) * 0.001f;
+    return (float)ReadDataByCommonIdentifier(0x0042) * 0.001f;
 }
 
 
 int GetDiagnosticTroubleCodeCount()
 {
-    return ReadDataByCommonIdentifier32(0x0200);
+    return ReadDataByCommonIdentifier(0x0200);
 }
 
 
@@ -98,7 +90,7 @@ int GetEngineCoolantTemperature()
 {
     int temp;
 
-	  temp = ReadDataByCommonIdentifier32(0x0005);
+	  temp = ReadDataByCommonIdentifier(0x0005);
 
     if (!temp) return 0;
 
@@ -110,7 +102,7 @@ int GetEngineSpeed()
 {
     int rpm;
 
-    rpm = ReadDataByCommonIdentifier64(0x000C);
+    rpm = ReadDataByCommonIdentifier(0x000C);
 
     if (!rpm) return 0;
 
@@ -122,7 +114,7 @@ int GetFanState( int* Fan1, int* Fan2 )
 {
     int response;
 
-    response = ReadDataByCommonIdentifier32(0x1103);
+    response = ReadDataByCommonIdentifier(0x1103);
 
     if (!response) return 0;
 
@@ -146,7 +138,7 @@ int GetFuelSystemStatus()
 {
     int response;
 
-    response = ReadDataByCommonIdentifier64(0x0003);
+    response = ReadDataByCommonIdentifier(0x0003);
 
     if (!response) return 0;
 
@@ -159,7 +151,7 @@ float GetIntakeAirMassFlowRate()
     int response;
     float flowRate;
 
-    response = ReadDataByCommonIdentifier64(0x0010);
+    response = ReadDataByCommonIdentifier(0x0010);
 
     if (!response) return 0.0f;
 
@@ -174,7 +166,7 @@ int GetIntakeAirTemperature()
 {
     int response;
 
-    response = ReadDataByCommonIdentifier32(0x000F);
+    response = ReadDataByCommonIdentifier(0x000F);
 
     if (!response) return 0;
 
@@ -187,7 +179,7 @@ float GetLongTermFuelTrim()
     int response;
     float percentage;
 
-    response = ReadDataByCommonIdentifier32(0x0007);
+    response = ReadDataByCommonIdentifier(0x0007);
 
     if (!response) return 0.0f;
 
@@ -203,7 +195,7 @@ float GetShortTermFuelTrim()
     int response;
     float percentage;
 
-    response = ReadDataByCommonIdentifier32(0x0006);
+    response = ReadDataByCommonIdentifier(0x0006);
 
     if (!response) return 0.0f;
 
@@ -216,7 +208,7 @@ float GetShortTermFuelTrim()
 
 float GetThrottlePosition()
 {
-    return (float)ReadDataByCommonIdentifier32(0x17B6) * 0.390625f;
+    return (float)ReadDataByCommonIdentifier(0x17B6) * 0.390625f;
 }
 
 
@@ -225,7 +217,7 @@ int GetTransmissionFluidTemperature()
     int response;
     float temperature;
 
-    response = ReadDataByCommonIdentifier32(0x17B3);
+    response = ReadDataByCommonIdentifier(0x17B3);
 
     if (!response) return 0;
 
@@ -240,7 +232,7 @@ int GetTransmissionForwardGearCommanded()
 {
     int response;
 
-    response = ReadDataByCommonIdentifier32(0x17B2);
+    response = ReadDataByCommonIdentifier(0x17B2);
 
     switch (response)
     {
@@ -261,13 +253,13 @@ int GetTransmissionForwardGearCommanded()
 
 float GetTransmissionLinePressureSolenoidAmperage()
 {
-    return (float)ReadDataByCommonIdentifier32(0x17B8) * 0.00390625f;
+    return (float)ReadDataByCommonIdentifier(0x17B8) * 0.00390625f;
 }
 
 
 int GetTransmissionOilPressureSwitchState()
 {
-    return ReadDataByCommonIdentifier32(0x1709);
+    return ReadDataByCommonIdentifier(0x1709);
 }
 
 
@@ -275,7 +267,7 @@ char GetTransmissionRangeSensorPosition()
 {
     int position;
 
-    position = ReadDataByCommonIdentifier32(0x17B1);
+    position = ReadDataByCommonIdentifier(0x17B1);
 
     switch (position)
     {
@@ -296,7 +288,7 @@ char GetTransmissionRangeSensorPosition()
 
 int GetTransmissionTurbineShaftSpeed()
 {
-    return (int)(float)ReadDataByCommonIdentifier32(0x17B0) * 37.5f;
+    return (int)(float)ReadDataByCommonIdentifier(0x17B0) * 37.5f;
 }
 
 

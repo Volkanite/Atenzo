@@ -143,7 +143,7 @@ void LogToFile( char* Format, ... )
 }
 
 
-void GetCommandResponse( char* Command, char* Buffer, int BufferLength)
+int GetCommandResponse( char* Command, char* Buffer, int BufferLength)
 {
     int cmdLen;
 
@@ -180,10 +180,12 @@ void GetCommandResponse( char* Command, char* Buffer, int BufferLength)
     removeCharFromStr(response, '\r');
 
     if (Debug)
-        LogToFile("<= %s", response);
+        LogToFile("<= %s [%i]", response, ntot);
 
     if (Buffer)
         strncpy(Buffer, response, BufferLength);
+
+    return ntot;
 }
 
 
