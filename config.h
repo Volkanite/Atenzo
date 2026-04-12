@@ -4,5 +4,7 @@
 #define FAN_CTRL_LO         90
 #define ECT_TFT_TEMP_CRIT   100
 
+#define FAN_CTRL_ENABLED	0
+
 #define LTFT_CRIT           -10.00f
 #define ALARM_LTFT          TRUE

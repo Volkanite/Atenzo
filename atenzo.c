@@ -655,6 +655,9 @@ void PrintCodes( unsigned short* DTCs, unsigned int nDTCs, unsigned int BufferLe
 
 int SetFanStateEx( int Index, int State )
 {
+	if (!FAN_CTRL_ENABLED)
+		return 0;
+		
     if (!UnlockActuation())
     {
         StatusPrint("UnlockActuation() failed! Fan setting failed!");
